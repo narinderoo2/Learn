@@ -1,0 +1,187 @@
+import { ApexChartUnitConversion } from './../../services/apex-chart-unit-conversion.service'; 
+import { Component, Input, OnDestroy, OnChanges, SimpleChanges, QueryList, ViewChildren,EventEmitter, ElementRef, Output } from '@angular/core';
+import {
+  ChartComponent,
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexFill,
+  ApexYAxis,
+  ApexDataLabels,
+  ApexTooltip,
+  ApexMarkers,
+  ApexXAxis,
+  ApexPlotOptions,
+} from 'ng-apexcharts';
+
+export type ChartOptions = {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  xaxis: ApexXAxis;
+  yaxis: ApexYAxis | ApexYAxis[];
+  labels: string[];
+  stroke: any; // ApexStroke;
+  markers: ApexMarkers;
+  dataLabels: ApexDataLabels;
+  plotOptions: ApexPlotOptions;
+  fill: ApexFill;
+  tooltip: ApexTooltip;
+  grid: ApexGrid;
+  theme: ApexTheme;
+  noData: ApexNoData;
+  legend: ApexLegend;
+  colors:any;
+};
+
+
+@Component({
+  selector: 'app-multi-line-chart',
+  templateUrl: './multi-line-chart.component.html',
+  styleUrls: ['./multi-line-chart.component.scss']
+})
+export class MultiLineChartComponent implements OnChanges, OnDestroy {
+  
+ 
+  public chartOptionsArr: any = [];
+@ViewChildren('refchartWrap') refchart: QueryList<ChartComponent>;
+
+  @Input() apexSeries: {
+    options:{
+      byGroup?:string
+    chartTitle?:string
+    chartHeight?:string 
+    toolbar?:boolean
+    toolbarSelection?:boolean
+    autoSelected?:string
+    selection?:any
+    },
+    chartData:[[{
+      name:any
+      type:any
+      color:any
+      data:any
+      config:any                  
+      chartTitle:any                  
+    }]]
+  }
+//healthChart
+  @Input() apexMethod: ('load' | 'update' );
+  public chartOptionsSecond: Partial<ChartOptions>;
+
+  exportImg: any = [];
+
+  @Output() outputArr = new EventEmitter();
+
+  chartSeriesByUnitArr: any = {
+    options: {
+      "byGroup": "chartGroup",
+      "toolbarSelection": false,
+      "toolbar": false,
+    },
+    chartData: []
+  };
+
+  constructor( private apexChartUnitConversion:ApexChartUnitConversion) { }
+
+  ngOnChanges(changes: SimpleChanges) {
+   console.log(this.apexSeries,this.apexMethod)
+   let that=this
+    if (this.apexMethod && this.apexMethod=="load") {
+      this.chartOptionsArr=[];  
+      if( this.apexSeries.chartData.length>0){
+        this.apexSeries.chartData.forEach(d=>{    
+          let test=this.apexChartUnitConversion.create_MultLineChart(d[0].chartTitle, //chrt title
+                                                                      d,//series
+                                                                      [], //colorsArr
+                                                                      this.apexSeries.options// for group
+                                                                      );
+           
+          test.yaxis = this.apexChartUnitConversion.yaxisSet(d[0]['config']['unit']);
+          test.tooltip = this.apexChartUnitConversion.tooltip(d[0]['config']['unit']);
+         
+             this.chartOptionsArr.push(test)
+           })
+      }else{ 
+        this.chartOptionsArr.push(this.apexChartUnitConversion.create_MultLineChart()); 
+
+
+      }
+    } else{ 
+
+      if(this.refchart){
+        this.refchart.forEach((d,i) => { 
+          d.updateSeries(this.apexSeries.chartData[i])
+         }); 
+      }
+     
+
+ 
+    }
+ 
+    this.apexSeries.chartData.forEach((d,i)=>{
+console.log(d[i],'*************888');
+this.callExportImg(that)  
+
+    })
+
+  }
+
+  callExportImg(that,type=''){
+   setTimeout(() => {
+          that.refchart.forEach((d,i) => {        if (d) { 
+    that.exportImg.push(d)
+      }  });
+    
+    
+      that.outputArr.emit(that.exportImg);
+    }, 1000);
+  }
+  
+  onRightClick(chart: HTMLElement,   event?: Event) {
+     
+    event.stopPropagation();
+    event.preventDefault();
+    return ;
+    let tooltip =document.getElementsByTagName('tooltip')[0];
+if(tooltip){
+  tooltip.remove();
+}
+
+let li='<ul class="list-group">'
+    chart['series'].forEach(d => {
+     
+
+      li+=`<li class="list-group-item links">${d.name}</li>`  
+    
+  });  
+
+    li+='<ul>'
+
+let  base = document.createElement('tooltip'); //Defining all objects
+ 
+ base.innerHTML = li;
+     
+
+
+ base.style.top = (event['pageY'] + 20) + 'px';
+ base.style.left = (event['pageX'] + 20) + 'px';
+ base.style.position =   'absolute'; 
+ document.body.appendChild(base);
+
+
+  }
+
+
+      
+  ngOnDestroy(): void {
+    //this.createChartSeriesArr(datas);
+    let tooltip =document.getElementsByTagName('tooltip')[0];
+    if(tooltip){
+      tooltip.remove();
+    }
+
+    
+}
+  
+
+
+}

@@ -1,0 +1,437 @@
+this = same div use 
+
+
+
+
+$('.classname')  = class name 
+$('#idname')   = id name 
+$('tagname') = tag name
+
+CDN - Content Delivery Network 
+	jquery use online and offline 
+	
+	$(document).ready();
+		|			|
+	selector      method()
+	Target DOM 		What Work
+	Element			
+
+ $(document).ready(funtion(){
+	var a = $("#test").html()  // get data id uder the html 
+ })
+ 
+ ----------------------------------
+ $(funtion(){
+ 
+ });
+ 
+ 
+$("*")  // html all tag target
+$("ul li") // parent to chlid all tag target
+$(".abc, .xyz")   // mulltiple class target
+$("h1,div,p")   // mulltiple random tag target
+$("p:first")   // first paragraph target
+$("p:last")    // last p target
+$("li:even")
+$("li:odd")
+
+
+----------------------
+Mouse Event:-
+	$(document).ready(funtion(){
+		$('#box').click(funtion(){
+			$('#box').css('background-color','green')
+		})
+	})s
+
+	click()
+	dbclick()
+	contextmenu()
+	mouseenter()
+	mouseleave()
+	
+	
+-------------------------
+
+Form Event:-
+	$('#NameClass,#ClassClass').focus(function(){
+		$(this).css('background-color','lime')
+    })
+
+	focus() click on input
+	blur()   fouce out 
+	change()  chekbox,radio,dropdown 
+	select() use in input (select value)
+	submit()  button
+	
+------------------------
+
+Window Event :-
+	$(window).scroll(function(){  
+		console.log('---');
+	})
+	
+	load () 	not use in 3.0
+	unload()  	not use in 3.0	
+	resize() window rezize 
+	scroll()  window scroll up down
+	
+------------------------
+
+Set Method:-
+	$('#clickButton').click(function(){
+        $('#box h2').text('ddddd')
+    })
+	
+	text()  // text change 
+	html()   // html use <p> helo<strong>RT</strong></p>
+	attr()  // apply class ('class','red')
+							method , class name
+	val()  // value set in form 
+	
+----------------------------
+
+CSS Class Method:-
+	$('#Toggle' ).click(function(){
+        $('#box').toggleClass('first')
+    })
+	Toggle = id name , box = div id name ,first = class 
+
+	addClass()  //add class 
+	removeClass()  //  remove class 
+	toggleClass()  // change class add and remove 
+
+------------------------------
+
+In Line CSS:-
+	$('#Add').click(function(){
+        $('#box').css({"background":'pink','color':'white'})
+    })
+	
+	css // inline style add 
+	
+------------------------------
+
+on() and off() method:- on same id mulltiple event call so on use this method
+	
+    $('#box').on('mouseover mouseout',function(){
+        $(this).toggleClass('first')
+    })
+	
+	on // every event call 
+	off // every event break
+
+--------------------------------
+
+Append and Prepend:-
+	 $('#Add').click(function(){
+        $('#box').append('<div>helo </div>')
+    })
+	
+	append  // Add data downside 
+	prepend  // Add data uper side
+	
+--------------------------------------
+
+After() and Before():-
+	 $('#Add').click(function(){
+        $('#box').after('<div>After </div>')
+    })
+
+	After // create down side 
+	Before // create uper side
+	
+--------------------------------
+
+Remove and Empty :-
+	 $('#Add').click(function(){
+        $('#box').empty()
+    })
+	
+	empty  // remove data under the id
+	remove // remove tag with data 
+	
+	
+--------------------------------
+
+AppendTo() and PrependTO():-
+
+	$(content).prependTo(selector)
+	 $('#Add').click(function(){
+        $('<p>apeendTo</p>').appendTo('#box')
+    })
+
+--------------------------------
+
+Clone() method:-
+	 $('#Remove').click(function(){
+        $('#box p').clone().prependTo('#clone')
+    })
+	
+	clone = new dev , box p = under div get paragraph data 
+	
+---------------------------------
+
+ReplaceWith and ReplaceAll :- replce tag 
+	$('#Add').click(function(){
+			// $('#box p:nth-child(3)').re placeWith('<h3>new replace line</h3>')
+			$('<h3>new replace line</h3>').replaceAll('#box p:first')
+    })
+
+replacewith replace htnml tag
+
+---------------------------------
+
+Wrap() and unwrap method:-
+	 $('#Add').click(function(){
+        $('#box p').wrap('<h3>new replace line</h3>')
+    })
+
+	wrap // create h3 createn(create new parent ) outside the p tag
+	unwrap  // remove parent tag
+
+-----------------------------------
+
+wrapall () and wrapinner() :-
+	  $('#Remove').click(function(){
+        $('#box p').wrapInner('<h3 id="first1"> </h3>')
+    })
+	
+	wrapall // create parent all 
+	wrapinner // selected tad child create 
+	
+
+-------------------------------------
+
+heigth and width :-
+	$('#Add').click(function(){
+        $('#box').height("300px")
+       console.log("width : " + $('#box').width())
+	})
+
+	width    //  paragraph width
+	height   //  paragraph height
+	innerWidth  //    box inside width
+	innerHeigth  //   box inside height
+	outerWidth  //   box outside width
+	outerHeight  //  box outside height
+	outerWidth(true)  //  width add with margin
+	outerHeight(true)  // height add with box margin
+
+-----------------------------------------
+
+Position() and Offset() :- position get (left and top)
+	$('#Add').click(function(){
+       console.log($('#position').position());
+       console.log($('#position p').offset());
+
+    })
+
+	|------|
+	| --   |
+	| --   |
+	|	   |
+	|------|
+
+	position  // postion measure with parent to child tag 
+	offset   // position measure with parent tag to child data (relative to the document )
+
+------------------------------------------------
+
+ScrollTop and scrollLeft :-  click button auto scroll
+	  $('#Add').click(function(){
+        $(window).scrollTop(0);
+    })
+
+	scrollTop // click on btn auto scroll on top 
+	scrollLeft // click on btn scroll on lfet side 
+	
+-------------------------------------------------
+
+hasClass () :- check class on any tag 
+	return (true and false)
+	    $('#Add').click(function(){
+        console.log($('#position').hasClass('test'));
+    })
+	
+	hasClass // only check class name on the tag and under the tagname
+	
+-------------------------------------------------
+
+hide and show  (and toggle ):- 
+
+   $('#Remove').click(function(){
+		$('#position p').show()
+	})
+	
+	$('#Add').click(function(){
+		$('#position p').hide(1000,function(){
+			console.log("now its hiden ");
+		}) //animation time (milisec),callback
+	})
+	
+	hide
+	show 
+	toggle // show and hide working one by one 
+	
+------------------------------------------------
+Effect : fade method :- 
+	$('#Add').click(function(){
+       $('#position').fadeOut() //(slow ,fast,3000),(calllback)
+    })
+		
+	fadein 
+	fadeout 
+	fadetoggle 
+	fadeto    //   $('#Remove').click(function(){
+						$('#position').fadeTo(1000,0.5) // (speed,opacity(between 0 to 1),callback)    
+					})
+--------------------------------------------------
+
+Slide Method:-  sliding up and down
+	$('#Remove').click(function(){
+		$('#position').slideToggle()    
+	})
+	slideDown
+	slideUp
+	slideToggle
+	
+---------------------------------------------------
+
+Animate Method:- $(selector).animate({params},speed,callback)
+params (css property)camel case
+	$('#Add').click(function(){
+		console.log('-');
+		$('#position').animate({left : '150px',width:'toggle'}) // position:absoult
+		$('#position').animate({top : '150px'},3000) 
+	})
+	
+	
+----------------------------------------------------
+
+Stop :- stop the animate (default = only one animation stop ) 
+	$('#Remove').click(function(){
+		$('#position').stop(true,true)
+	})
+	
+	stop  // all animation stop use (true)
+
+-------------------------------------------
+
+Chaining :-  $(selector).css('color','red').slideUp().slideDown()
+
+	$('#Add').click(function(){
+		$('#position').css('background','pink').slideUp(2000).slideDown()
+	})
+	
+	chaining // multiple method call in one line 
+
+----------------------------------------------
+
+Ancestors methods:- target the parent , grandparent , great-grandparent
+
+	parent // $('id').parent().css('background','red')
+	parents  // $('id').parents('#main-outer').css('background','red') ?? 
+	parentsuntil  // $('id').parentsuntil().css('background','red') // id to main target tag 
+	offsetparent // $('id').offset().css('background','red') // use propert postion and target only postion property
+	closeset // $('id').closeset(ul).css('background','red') // parent tag select 
+
+
+------------------------------------------------
+
+Descendants Method :-  child , grandchild , great-grandchild
+	 $('#Add').click(function(){
+		$('#position').find('.test').css('background','pink')
+	})
+	
+	children  // working with all child and child tag (test)
+	find  //  woking with child , grandchild , great-grandchild
+
+---------------------------------------------------
+
+siblings methods :-  same parent (p,div, span, ul , a)
+
+	$('#Add').click(function(){
+		$('#position p').siblings().css('background','pink')
+    })
+		
+	siblings  // same parent 
+	next  // parent next tag 
+	nextAll  // next all tag 
+	nextUntil // nextUntil('.test') start to end test all tag select
+	prev  // previous tag 
+	prevAll  // previous all tag
+	prevUntil  //  start to back side test  class select all tag 
+
+------------------------------------------------
+
+Filtering Method :-
+
+	$('#Add').click(function(){
+        $('p').first().css('background','pink')
+    })
+
+	First  // first p tag select 
+	last  // last tag target
+	eq  // .eq(2[index]).css() target by indexing 
+	filter  // filter by class name 
+	not //  not class name match target  
+	slice  // slice(2) or slice(0,9) start 2 to end target
+
+----------------------------------------------------
+
+has & is :-
+	 $('#Add').click(function(){
+		$('p').has('span,b').css('background','pink')
+	})
+	
+	has // select p under span use target (under p tag class test css apply)
+	is //  use in if tag and return value true and false.  
+	
+----------------------------------------------------
+
+each method :-  woking by loop (get and set data in html)
+
+	$('#Add').click(function(){
+		$('p').each(function(){
+			console.log($(this).text());
+		})
+	})
+	
+---------------------------------------------------
+
+pageX & pageY :- 
+
+	$(document).mousemove(function(event){
+	   $('#position').text(event.pageY)
+	})
+
+event.pageX  // horizontal (--)
+event.pageY // vertival (|)
+event.type
+event.which
+event.target
+event.preventDefault
+event.isDegaultPrevented
+event.stopPropagation
+event.isPropagationStopped
+event.data
+
+
+
+
+	
+
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

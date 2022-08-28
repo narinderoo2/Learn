@@ -1,0 +1,41 @@
+FROM node:16-alpine
+WORDIR /app
+COPY . .
+RUN npm install
+CMD [ "npm" ,"run", "dev"]
+
+
+
+docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.8-management
+
+
+Digest: sha256:3d4c70ec5fc84c27efaeb56c50aafcac4fd8583b61398cc028e4876f84ae73d8
+Status: Downloaded newer image for rabbitmq:latest
+03cd7ef9aae0a91f27c92283cbd0cf0485bb6b4e67c23de0ef627ed22c030c5a
+
+
+docker image build -t my-node-img .   // my-node-img (name of image)
+docker images  // check all image
+docker images ls  // check all image
+docker container run my-node-img //create container
+
+docker container ls // list running container
+docker container -a // list of all container
+docker container start <container id> //exit container runing  174bb6f63012 
+
+docker exec -it <container id> sh  // excess shell and run linuex server
+								??  exit 
+								
+docker container stop <container id> // stop container
+docker container run -d --name c1 my-node-img // container name create and 
+
+
+
+
+
+
+
+
+
+
+pip install eventlet //celery run on window

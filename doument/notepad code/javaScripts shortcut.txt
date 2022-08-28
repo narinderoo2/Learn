@@ -1,0 +1,20 @@
+JS ES6
+F12  - console open 
+cntl + shft + /    - muliline comment
+number,bigint,string,boolean,null,undefined,object,symbol   - data type 
+boolean(1) = true, boolean(0) = false
+0, null, undefined, NaN, ""=	false
+any other value = true
+++counter = returns the "new" value
+counter++ = returns the "old" value
+let message = (age < 3) ? 'Hi, baby!' :  (age < 18) ? 'Hello!' :
+  (age < 100) ? 'Greetings!' : 'What an unusual age!';  -- ternary oprater
+  
+  DOM (Document Object Model)
+
+window.innerHeight  = global object
+
+ myControl = new FormControl();
+
+    this.myControl.valueChanges.pipe(
+      debounceTime(500)).subscribe(productList => this.dataget(productList));

@@ -1,0 +1,94 @@
+{Dictionary} function :-
+	d={
+	name:'python',price:2000
+	}
+	get() d.get('name')
+	keys() use for loop , for a in d.keys() = name,price
+	values() use for loop , for a in d.values() = python , 2000
+	items()  use for loop , for a,b in.items() = name python 
+												price 2000
+								 
+
+	Delete (del,pop) :- 
+		del d['name']
+		d.pop('name')
+		
+	Update (dict,update) :- 
+		dict(name1='js', fess=400)
+		d.update({name:'rt'})
+		d.clear()
+		
+(Tuple) Immutable  :- more then one value is tuple 
+	t = (10,20,30,40)
+	min() min(t) = 10
+	max() max (t)  = 40 
+	count() t.count(20) = 1(count)
+	index() t.index(20) = 1(index)
+	sum() only integer and float  sum(t) = 100
+
+
+{Set} mutable,no duplicate value :-
+	s = {10,20,30,40}
+	l = [20 ,80]
+	
+	sets() list convert to set 
+	remove()  s.remove(20) not value in set, throw error
+	discard() s.discard(50) 
+	pop() s.pop()
+	clear() s.clear() =set() funtion
+	add()  s.add(60) = {...40,60}
+	update()  s.update(l) = {...
+	40,80}
+	
+	
+User Defined Funtion def:- 
+
+Module (predefind , user defind):-
+	collection of funtion , variable 
+
+Radom Module :- 
+	l=[10,20,40]
+	rondom.randint(5,10) = any radom in 5 to 10
+	random.randrange(5,10)= not include 10 
+	random.choice(l) = return single value in listing
+	..random() return float number between 0 to 1
+	..suffle(l) element move different position
+	..uniform(3,9) random float value under 3 to 9 
+	
+JSON (javaScript Object Notation) :- 
+	
+OOP (Object Oriented Programming ) :- 
+	class DemoClass:
+		a = 10 
+		
+		def __init__(self);
+			print ("this is constructor") 
+			
+		def showValue(self,b):
+			self.c = self.a * self.a + b
+			
+	obj = DemoClass()
+	obj.showValue()
+	obj.showValue(2)
+			
+	one class to multiple object 
+	object call outside the class 
+	- method (funtion) call under the class 
+	- constructor  call auto matic 
+	- variable call in variable with self
+	- constructor is __init__
+	
+	Inheritance :- 
+		class A:
+			def display(self):
+				print('inheritance A')
+		class B(A):
+			def display(self):
+				print('inheritance B')
+				
+		class C(A,B):
+			multiple inlheritance
+	
+	Encapsulation (Getter and Setter):-
+		
+	

@@ -1,0 +1,463 @@
+import { ExportReportServiceService } from './../../../shared/services/export-report-service.service';
+import { ApexChartUnitConversion } from './../../../shared/services/apex-chart-unit-conversion.service';
+import { ChartService } from './../../../shared/services/chart.service';
+import { CommonService } from 'src/app/shared/services/common.service';
+import { MasterService } from './../../../shared/services/master.service';
+ 
+import { Component,  OnInit } from '@angular/core';
+ 
+import { Endpoints } from 'src/app/shared/endpoints';
+import { Subscription } from 'rxjs';
+import { SessionMgtService } from 'src/app/shared/services/session-mgt.service'; 
+
+//img Down lownload
+import * as htmlToImage from 'html-to-image';
+import * as moment from 'moment';
+// import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
+
+
+
+@Component({
+  selector: 'app-cor-relation',
+  templateUrl: './cor-relation.component.html',
+  styleUrls: ['./cor-relation.component.scss']
+})
+export class CorRelationComponent implements OnInit {
+  
+  sourceLoader: boolean = false;
+  pageLoader: boolean = false;
+  permission: any ;
+  matrixArray: [{
+    ip:string,
+    service:string,
+    metric:string,
+  }];
+  requestCorrelatio: any =[];
+  correlationArr: any =[];
+  requested_data: any ;
+  corr_dataArr: any=[] ;
+  chartSeriesArrData: any=[] ;
+
+  uncheckChartObj=[];
+  indexArray = [];
+  
+ 
+  chartSeriesByUnitSourceArr: any = {
+    options:{byGroup:''},
+    chartData:[]} ; 
+    chartSeriesByUnitArrWrap:any=[];
+     
+  
+ 
+    constructor(private chartService: ChartService,
+       private commonService: CommonService, 
+       private sessionMgtService: SessionMgtService, 
+       private apexChartUnitConversion: ApexChartUnitConversion, 
+       private endpoints: Endpoints, 
+       private exportReportServiceService: ExportReportServiceService,
+    ) {
+      this.permission = this.commonService.permission('correlation');
+       
+    }
+  
+    async ngOnInit(){ 
+      
+ 
+        this.requestCorrelatio = await this.sessionMgtService.currentPage("correlation") 
+     console.log(this.requestCorrelatio)
+      if (this.requestCorrelatio) {
+
+
+      }else{ 
+  this.commonService.redirect('/dashboard');
+ return ;
+      }
+ this.getCorrelation();
+ 
+       
+    } 
+
+// get Correlation by notif_uid
+    getCorrelation() { 
+      this.pageLoader=true;
+     
+         this.commonService.getRequest(this.endpoints.BELL_NOTIFICATION_DATA+`?notif_uid=${this.requestCorrelatio.notif_uid}&notif_type=metric_correlation`).subscribe({
+          next: (res)=>{
+       this.pageLoader=false;
+      if(res.resultCode=="1"){ 
+       
+        if(res.results){
+          this.correlationArr=res.results;
+
+          this.corr_dataArr=res.results.corr_data; 
+        this.requested_data=res.results.req_data[0]; 
+         
+ 
+          this.matrixArray=[{"ip":this.requested_data['host__host_name'],"service":this.requested_data['service'],"metric":this.requested_data['metric']}]
+          
+          this.corr_dataArr.forEach(d => {
+            this.matrixArray.push({"ip":this.requested_data['host__host_name'],"service":d.corr_service,"metric":d.corr_metric})
+            
+            let corr_metric= this.sessionMgtService.metrixDetails(d.corr_metric);
+            d.corr_metric=corr_metric;
+          
+          });
+console.log(this.matrixArray)
+
+this.getChartDataByMetrix();
+
+        }else{
+
+        }
+ 
+ 
+         }else{ 
+          this.commonService.callAlert(
+            '',
+            this.commonService.getErrorMessage(res.errorMessage)
+          );
+         }
+     
+         },error:(error)=>{
+          this.pageLoader=false;
+           this.commonService.callAlert('');
+         }})
+         
+        
+         }
+
+
+
+
+    getChartDataByMetrix() {
+      this.chartService
+          .getMatricResponse( 
+            this.matrixArray, 
+            [this.requested_data['display_from'],this.requested_data['display_to']]
+          )
+          .subscribe({
+            next:
+            (res: any) => {
+          
+              let countArray = 0; 
+    
+              res.forEach((el) => {
+                if (el.resultCode == '1') {
+             
+                  if (el.results && el.results.length > 0) {
+                    if (el.resultCode == 1 && el.results.length >0) {
+                      let bodyData=el.results[0][1]; 
+                      let chartDataArr = this.chartService.getCheckMkFilterData(bodyData); 
+                      let configCheckMk = this.sessionMgtService.metrixDetails(el['matrix']);               
+                   
+               
+              this.chartSeriesByUnitArrWrap.push({
+                options:{
+                  byGroup:'correlationGroup',
+                  toolbar:false,
+                  toolbarSelection:true,
+                  autoSelected:'selection', 
+                selection: {
+                  enabled: true,
+                  xaxis: {
+                    min: this.requested_data['consider_from']*1000,
+                    max: this.requested_data['consider_to']*1000 
+                    //max: new Date('29 JULY 2022').getTime()
+                   
+                  }
+                }},
+                chartData:[[{
+                  chartTitle: configCheckMk.title,
+                      name: configCheckMk.title,
+                      type: configCheckMk.chart_type,
+                      data: chartDataArr,
+                      color: configCheckMk.color,
+                      config: configCheckMk
+                    }]]})
+              
+                    }
+                    countArray++;
+                  }
+                }
+              });
+    
+              
+                if (countArray == res.length) {
+    console.log(this.chartSeriesByUnitArrWrap)
+                  this.sourceLoader=true;
+    
+              } else {
+    
+                 
+    
+              }  
+            },error:
+            (error) => {
+              this.sourceLoader=true;
+            }}
+          );
+      }
+    
+
+
+  
+      // isSourcesCharts:boolean=true;
+      // currentChartActive='';
+      // onChangeSources(e,type){
+        
+      //   let checkStatus = e.target.checked;
+      //   this.chartSeriesByUnitArrWrap.map((obj,i)=>{
+      //      if(i !==0){
+      //       this.chartSeriesByUnitArrWrap = obj;
+      //      }
+      //   })
+      //   if(type){
+
+      //   }
+      // }
+  
+
+
+  
+
+      
+      toggleSeries(checkbox,name,i) {
+        let id = i;
+        this.indexArray.push(i);
+        if(checkbox==false){
+        this.chartSeriesByUnitArrWrap.map((obj,i)=>{
+               if(i !==0){
+                // this.chartSeriesByUnitArrWrap.push(obj[1]);
+                // let objIndex = obj.findIndex((obj => obj.chartData[0][0].name =="CPU utilization"));
+                // this.chartSeriesByUnitArrWrap[objIndex].data = [];
+                if(obj.chartData[0][0].name==name){
+                  //  let cloneObj = [...obj];
+                  // delete this.chartSeriesByUnitArrWrap[i];
+                 let objData = this.chartSeriesByUnitArrWrap.splice(i, 1);
+                 this.uncheckChartObj.push({
+                  'title':name,
+                  'Obj':objData[0]
+                 })
+                //  this.uncheckChartObj.push({...objData[0]})
+                 console.log(this.uncheckChartObj);
+
+                }
+               }
+          });
+        }else{
+          this.uncheckChartObj.forEach((el)=>{
+            if(el.title==name){
+              // this.chartSeriesByUnitArrWrap.splice(id, 0, this.uncheckChartObj[0])
+              // this.chartSeriesByUnitArrWrap.splice(id, 0, el.Obj);
+              this.chartSeriesByUnitArrWrap.splice(id==0?1:id, 0, el.Obj);
+              this.uncheckChartObj.splice(el.title,1)
+            }
+          })
+          
+        }
+// window.ApexCharts.exec("correlationWrap", "updateSeries", [
+//         {
+//           data:this.chartSeriesByUnitArrWrap 
+//         }
+//       ], true);
+    
+    }
+    // var chart = window.ApexCharts.exec("correlationWrap", "updateSeries", [
+    //       {
+    //         data:this.chartSeriesByUnitArrWrap[1]
+    //       }
+    //     ], true);
+      
+    //   }
+    
+    downloadFile(type: string, name: string) {
+      let pdfData = [];
+      let obj='';
+      // htmlToImage.toJpeg(document.getElementById('chart_top'))
+      // .then(dataUrl => {
+      // console.log(dataUrl,'090090909')  
+      // obj=dataUrl
+      // });
+      
+    pdfData.push({
+      
+      "images": this.exportArr,
+      
+     
+     
+    });
+    const currentDat = moment().format('DD-MM-YY hh:mm A');
+    var options = {
+      filename: 'correlation',    //Name of the downloaded files.
+      heading: 'Correlation  Chart Data', //heading of Downloaded PDF File
+      headhtml: `Download Time :${currentDat} `, //heading of Downloaded PDF File
+      pagetype: 'p', // For landscape use 'l', for portrait use 'p'
+      sizeunit: 'in', // in (inches),mm  8.3 x 11.7
+      pdfPWidth: '8.3', // Width and height of the pdf
+      pdfPHeight: '11.7', // height and height of the pdf
+    }
+
+    if (type == 'pdf') {
+      this.exportReportServiceService.download_pdf(options, pdfData)
+    }else if(type=='excel'){
+    this.exportReportServiceService.download_excel(options, pdfData)
+
+  }
+  
+     
+    }
+
+
+    exportArr:any=[];
+   outputArrEvent(arr){
+      if (arr.length > 0) {
+        arr.forEach((d) => {
+          if (d) {
+            d.dataURI().then( ( row) => {
+              console.log(row,'row');
+              if (row['imgURI']) {
+                this.exportArr.push(row['imgURI']);
+              }
+            });
+          }
+        });
+      }
+     setTimeout(() => {
+      console.log( this.exportArr);
+     }, 500);
+      
+
+    }
+    
+    ngOnDestroy(): void {
+  
+   
+    }
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- Company Name: Echelone Edge Pvt Ltd
+Designer: Ashima
+Date: 05 July 2022,
+Developer:Mahendra
+-->
+
+<section class="container-fluid mb-5">
+  <div class="row mt-2 ">
+    <div class="col-md-10 col-sm-9"></div>
+    <div class="col-md-2 col-sm-3 mb-2 ">
+      <ul class="nav nav-pills dashboard-tabs">
+        <li>
+         <div role="main">
+           <ul  class="list-group list-group-horizontal list-group-flush">
+             <li>
+               <div class="dropdown">
+                 <ul>
+                   <li class="nav-link-icon edit mt-0">
+                     <i class="fa fa-download"></i>
+                   </li>
+                 </ul>
+                 <div class="dropdown-content">
+                   <a href="javascript:void(0);" (click)="downloadFile('pdf','Services')"
+                     >Export to PDF</a
+                   >
+                   <a href="javascript:void(0);" (click)="downloadFile('excel','Services')"
+                     >Export to Excel</a
+                   >
+                 </div>
+               </div>
+             </li>
+           </ul>
+         </div>
+        </li>
+       </ul>
+    </div>
+    <div class="col-md-12">
+        <div class="custom-bg" id="chart_top">
+        <div *ngIf="requested_data && requested_data['host__host_name']" class="text-white">  {{requested_data['host__host_name'] }} | 
+          {{requested_data['service']}}</div>
+          <app-spinner *ngIf="!sourceLoader"></app-spinner>
+
+
+        <app-multi-line-chart #correlationWrap   *ngIf="sourceLoader"
+          [apexSeries]="chartSeriesByUnitArrWrap[0]"  (outputArr)='outputArrEvent($event)'
+          [apexMethod]="'load'" 
+           ></app-multi-line-chart>  
+
+
+        </div>
+    </div>
+  </div>
+  <div class="row custom-bg mx-2 my-4">
+    <div class="col-lg-3 col-md-4 col-xs-12">
+      <div class="left-availability">
+        <h3 class="table-heading">SOURCES</h3>
+          <ul>
+            <li *ngFor="let row of corr_dataArr;let i = index">
+              <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked (change)="toggleSeries($event.target.checked,row.corr_metric['title'],i)">
+              <label class="form-check-label" for="flexCheckDefault">
+                 {{row.corr_metric['title'] }} <br>
+
+                 {{row.corr_service}} ({{row.corr_index}})
+                  
+              </label>
+            </div>
+          </li>
+     
+             
+          </ul>
+        </div>
+    </div>
+    <div class="col-lg-9 col-md-8 col-xs-12 border-left" id="chart_secound">
+     <p class="table-heading border-btm">Showing 1-2 of {{corr_dataArr.length}} results</p>
+     <app-spinner *ngIf="!sourceLoader"></app-spinner>
+     
+     <div class="row" *ngIf="sourceLoader">
+
+<ng-container *ngFor="let row of chartSeriesByUnitArrWrap; index as i " id="chart_secound">
+      <div class="col-md-6"  *ngIf="i!=0"> 
+        <app-multi-line-chart    #correlationWrap   (outputArr)='outputArrEvent($event)'
+          [apexSeries]="row"
+          [apexMethod]="'load'"
+           ></app-multi-line-chart>
+       </div>
+      </ng-container>
+      </div>
+     </div>
+
+    </div>
+</section>
+
+
+
+<div id="overlay" *ngIf="pageLoader">
+  <div class="spinner-border  text-primary" style="width: 3rem; height: 3rem;" role="status">
+    <span class="sr-only"></span>
+  </div> <br> Loading <br>Please wait...
+</div>

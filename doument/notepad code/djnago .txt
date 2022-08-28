@@ -1,0 +1,17 @@
+pyhton --version => check python version
+py -m venv env => enviorment create
+cd env/Scripts/activate
+pip install django
+
+
+pyhton -m django --version
+django-admin startporject mysite -- project create 
+	manage.py
+	mysite/	
+			__init__.py
+			settings.py
+			urls.py
+			asgi.py
+			wsgi.py
+			
+		

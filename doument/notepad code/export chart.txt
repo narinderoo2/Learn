@@ -1,0 +1,1132 @@
+import { CommonHelperService } from 'src/app/shared/services/common-helper.service';
+import { ExportExcelService } from './excel.service';
+import { Injectable, HostListener } from '@angular/core';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Workbook } from 'exceljs';
+import * as fs from 'file-saver';
+@Injectable({
+  providedIn: 'root',
+})
+export class ExportReportServiceService {
+  baseUrlImage: string = '';
+  logoImage: string = '';
+  createStructure: any = [];
+  csvDataStructure: any = [];
+
+  constructor(
+    public ete: ExportExcelService,
+    public commonHelperService: CommonHelperService
+  ) {
+    this.commonHelperService.toDataURL(
+      '/assets/images/footer_logo.png',
+      (dataUrl: string) => {
+        this.baseUrlImage = dataUrl;
+      }
+    );
+    this.commonHelperService.toDataURL(
+      '/assets/images/sidebarlogo.png',
+      (dataUrl: string) => {
+        this.logoImage = dataUrl;
+      }
+    );
+  }
+
+  /* Method to call the excelJs lib to download the Excel sheet for reports */
+  exportExcelJsSheet(
+    headData: any,
+    bodyData: any,
+    heading: string,
+    filename: string,
+    callback = null,
+    headingDisplay?: string
+  ) {
+    if (headingDisplay) {
+      heading = headingDisplay;
+    }
+    let excelData = [];
+    for (let _d = 0; _d < bodyData.result.length; _d++) {
+      bodyData.result[_d]['data'].forEach((list: any[]) => {
+        if (heading.includes('Service Statistic')) {
+          list.splice(1, 1, list.splice(2, 1, list[1])[0]);
+        }
+        list.splice(list.length - 3, 3);
+        excelData.push(list);
+      });
+      if (_d == bodyData.result.length - 1) {
+        let reportData = {
+          title: heading,
+          data: excelData,
+          headers: headData,
+          exportTo: 'excel',
+        };
+        this.ete.exportExcel(reportData, () => {
+          callback(false);
+        });
+      }
+    }
+  }
+  /* Method to call the pdfJS lib to download the pdf file for reports */
+  exportDataReportsToPDF(
+    headData: any,
+    bodyData: any,
+    heading: string,
+    filename: string,
+    callback = null,
+    headingDisplay?: string
+  ) {
+    const doc = new jsPDF('l', 'mm', 'a4');
+    const head = [headData];
+    let colStyleCustom: any = {};
+
+    if (heading == 'Host Statistic') {
+      colStyleCustom = {
+        2: {
+          cellWidth: 100,
+        },
+        3: {
+          fillColor: [20, 192, 126],
+          textColor: 255,
+          fontStyle: 'bold',
+          opacity: 0.2,
+        },
+        4: { fillColor: [255, 215, 3], textColor: 255, fontStyle: 'bold' },
+        5: { fillColor: [255, 132, 0], textColor: 255, fontStyle: 'bold' },
+        6: { fillColor: [208, 50, 56], textColor: 255, fontStyle: 'bold' },
+        7: { fillColor: [30, 41, 53], textColor: 255, fontStyle: 'bold' },
+      };
+    } else {
+      colStyleCustom = '';
+    }
+
+    // if(headingDisplay){
+    //   heading=headingDisplay;
+    // }
+
+    /** 
+   * Example to create the data format for table.
+   * @parm head is used to create the data for Table Header
+   *  const  head = [['id','abc','def','ffff']]
+   * @parm data is used to create the data for body of table
+    const data = [
+      [1, 'Finland', 7.632, 'Helsinki'],
+      [2, 'Norway', 7.594, 'Oslo'],
+      [3, 'Denmark', 7.555, 'Copenhagen'],
+      [4, 'Iceland', 7.495, 'Reykjavík'],
+      [5, 'Switzerland', 7.487, 'Bern'],
+      [9, 'Sweden', 7.314, 'Stockholm'],
+      [73, 'Belarus', 5.483, 'Minsk']
+    ];
+
+{data:[],name:nms2}
+
+    */
+
+    for (let _d = 0; _d < bodyData.result.length; _d++) {
+      let finalY = (doc as any).lastAutoTable.finalY;
+
+      if (finalY) {
+        doc.text(bodyData.result[_d]['name'], 15, finalY + 10);
+      } else {
+        finalY = 16;
+        doc.text(bodyData.result[_d]['name'], 15, 26);
+      }
+      autoTable(doc, {
+        head: head,
+        body: bodyData.result[_d]['data'],
+        rowPageBreak: 'auto',
+        margin: { top: 10, bottom: 20 }, // change 17 to 20 (lagend overlap on data )
+        showHead: 'firstPage',
+        startY: finalY + 15,
+        columnStyles: colStyleCustom,
+
+        didDrawCell: (data) => {
+          if (data.section === 'body' && data.cell.raw < 0) {
+            data.cell.styles.textColor = 'red';
+          }
+          if (_d == 0 && data.row.index == 0) {
+            doc.setDrawColor(8, 38, 70);
+            doc.setFillColor(8, 38, 70);
+            doc.rect(0, 0, doc.internal.pageSize.width, 15, 'FD');
+            doc.setDrawColor(13, 110, 253);
+            doc.setLineWidth(1.5);
+            doc.line(0, 16, doc.internal.pageSize.width, 16);
+            doc.addImage(
+              this.logoImage,
+              'PNG',
+              data.settings.margin.left,
+              3,
+              25,
+              10
+            );
+            doc.setTextColor(255);
+            doc.setFontSize(16);
+            doc.setFont('bold');
+            let xOffset =
+              doc.internal.pageSize.width / 2 -
+              doc.getStringUnitWidth(headingDisplay) * 3;
+            doc.text(headingDisplay, xOffset, 9);
+            let dateData = new Date().toLocaleString();
+            doc.setFontSize(10);
+            doc.text(String(dateData), doc.internal.pageSize.width - 50, 9);
+          }
+          data.cell.styles.fillColor = [216, 78, 75];
+          if (_d == bodyData.result.length - 1) {
+            var pageSize = doc.internal.pageSize;
+            var pageHeight = pageSize.height
+              ? pageSize.height
+              : pageSize.getHeight();
+            if (heading == 'Host Statistic') {
+              doc.setDrawColor(20, 192, 126);
+              doc.setFillColor(20, 192, 126);
+              doc.rect(15, pageHeight - 22, 10, 5, 'FD');
+              doc.setTextColor(100);
+              doc.text('Ok', 15, pageHeight - 18);
+
+              doc.setDrawColor(255, 215, 3);
+              doc.setFillColor(255, 215, 3);
+              doc.rect(27, pageHeight - 22, 18, 5, 'FD');
+              doc.setTextColor(100);
+              doc.text('Warning', 28, pageHeight - 18);
+
+              doc.setDrawColor(255, 132, 0);
+              doc.setFillColor(255, 132, 0);
+              doc.rect(47, pageHeight - 22, 18, 5, 'FD');
+              doc.setTextColor(100);
+              doc.text('Unknown', 48, pageHeight - 18);
+
+              doc.setDrawColor(255, 50, 50);
+              doc.setFillColor(255, 50, 50);
+              doc.rect(67, pageHeight - 22, 18, 5, 'FD');
+              doc.setTextColor(100);
+              doc.text('Critical', 68, pageHeight - 18);
+
+              doc.setDrawColor(32, 39, 46);
+              doc.setFillColor(32, 39, 46);
+              doc.rect(87, pageHeight - 22, 18, 5, 'FD');
+              doc.setTextColor(100);
+              doc.text('Pending', 88, pageHeight - 18);
+            }
+
+            doc.setDrawColor(8, 38, 70);
+            doc.setFillColor(8, 38, 70);
+            doc.rect(0, pageHeight - 15, doc.internal.pageSize.width, 15, 'FD');
+            doc.setDrawColor(13, 110, 253);
+            doc.setLineWidth(1.5);
+            doc.line(
+              0,
+              pageHeight - 15,
+              doc.internal.pageSize.width,
+              pageHeight - 15
+            );
+            doc.setTextColor(255);
+            doc.setFontSize(10);
+            doc.setFont('bold');
+            doc.text(
+              'Copyright ©2022 Echelon Edge Pvt Ltd',
+              15,
+              pageHeight - 6
+            );
+            doc.addImage(
+              this.baseUrlImage,
+              'PNG',
+              doc.internal.pageSize.width - 60,
+              pageHeight - 12,
+              43,
+              10
+            );
+          }
+        },
+      });
+      let date: any = new Date();
+      date =
+        date.toString().split(':')[0] + ':' + date.toString().split(':')[1];
+
+      if (_d == bodyData.result.length - 1) {
+        if (callback) {
+          callback(false);
+        }
+
+        // fs.saveAs(blob, title + '-' + date + '.xlsx');
+
+        doc.save(filename + date + '.pdf');
+      }
+    }
+  }
+
+  download_pdf(options, dataArr: any = [], callback = null) {
+    this.commonHelperService.imgToBase64(
+      `assets/images/export-images/logo.png`,
+      (headerImg, headerWidth, headerHeight) => {
+        this.commonHelperService.imgToBase64(
+          `assets/images/export-images/footer_logo.png`,
+          (footerImg, footerWidth, footerHeight) => {            
+            this.download_pdfFile(
+              options,
+              dataArr,
+              headerImg,
+              headerWidth,
+              headerHeight,
+              footerImg,
+              footerWidth,
+              footerHeight,
+              (d) => {
+                if (callback) {
+                  callback();
+                }
+              }
+            );
+          }
+        );
+      }
+    );
+  }
+
+  download_excel(options, dataArr: any = [], callback = null) {
+    this.commonHelperService.imgToBase64(
+      `assets/images/export-images/logo.png`,
+      (headerImg, headerWidth, headerHeight) => {
+        this.commonHelperService.imgToBase64(
+          `assets/images/export-images/footer_logo.png`,
+          (footerImg, footerWidth, footerHeight) => {
+            this.download_excelFile(
+              options,
+              dataArr,
+              headerImg,
+              headerWidth,
+              headerHeight,
+              footerImg,
+              footerWidth,
+              footerHeight,
+              (d) => {
+                if (callback) {
+                  callback();
+                }
+              }
+            );
+          }
+        );
+      }
+    );
+  }
+
+  download_excelFile(
+    options: {
+      filename;
+      heading;
+      pagetype;
+      sizeunit;
+      pdfPWidth;
+      pdfPHeight;
+      imageonoff: boolean;
+      headhtml;
+      footerCallMultiTime: boolean;
+    },
+    dataArr: [
+      {
+        title?: string;
+        columns: string[];
+        rows: any;
+        columnStyles?: any;
+        images?: any;
+        columeFooterLagend?:any;
+      }
+    ],
+    headerImg,
+    headerWidth,
+    headerHeight,
+    footerImg,
+    footerWidth,
+    footerHeight,
+    callback = null
+  ) {
+    const workbook = new Workbook();
+    const dateTime = new Date();
+
+    workbook.creator = 'NMS';
+    workbook.lastModifiedBy = 'NMS';
+    workbook.created = dateTime;
+    workbook.modified = dateTime;
+    workbook.lastPrinted = dateTime;
+
+    // const worksheet = workbook.addWorksheet('New Sheet');
+
+    // pageSetup settings for A4 - landscape
+    // headers and footers
+    const worksheet = workbook.addWorksheet(
+      options.heading ? options.heading : 'New Sheet',
+      {
+        headerFooter: { oddFooter: 'Page &P of &N', oddHeader: 'Odd Page' },
+      }
+    );
+
+    /*  
+
+    // red tab colour
+const worksheet = workbook.addWorksheet('New Sheet', {properties:{tabColor:{argb:'FFC0000'}}});
+
+// hide grid lines
+const worksheet = workbook.addWorksheet('New Sheet', {views: [{showGridLines: false}]});
+
+// freeze first row and column
+const worksheet = workbook.addWorksheet('New Sheet', {views:[{state: 'frozen', xSplit: 1, ySplit:1}]});
+
+
+
+ */
+    this.excelAddHeader(workbook, worksheet, headerImg, options);
+
+    //worksheet.headerFooter.oddFooter = "Page &P of &N";
+
+    //worksheet.autoFilter = 'A1:C1';
+
+    if (dataArr.length > 0) {
+      dataArr.forEach((d, i) => {
+        if (i != 0) {
+          worksheet.addRow([]);
+        }
+
+        /*   worksheet.columns = d.columns.map(d=>{ 
+    return  { header: d, key: d}    }) */
+
+        let columns = worksheet.addRow(d.columns);
+      
+        columns.font = {
+          color: { argb: 'ffffff' },
+          size: 12,
+        };
+
+        /* worksheet.getRow(columns.number).eachCell({ includeEmpty: true }, function(cell) {
+    worksheet.getCell(cell.address).fill = {
+      type: 'pattern',
+    pattern:'solid',
+    fgColor:{argb:'082646'}, 
+    }
+  }) */
+
+        worksheet
+          .getRow(columns.number)
+          .eachCell({ includeEmpty: true }, (cell,indexed)=> {
+           
+            /* to set Header color */
+            let getColorCodes = d.columnStyles?.[indexed-1]?.fillColor;
+            let color = '082646'
+            // if(getColorCodes){
+            //   color = this.commonHelperService.rgbToHex(getColorCodes[0],getColorCodes[1],getColorCodes[2])
+            // }
+            worksheet.getCell(cell.address).fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: color },
+            };
+          });
+        let rows = worksheet.addRows(d.rows);
+
+        if (d.columnStyles) {
+          rows.forEach((item, index) => {
+            for (const [key, value] of Object.entries(d.columnStyles)) {
+              if (value['fillColor']) {
+                let cell =item.getCell(Number(key) + 1)
+                cell
+                .fill = {
+                  type: 'pattern',
+                  pattern: 'solid',
+                  fgColor: {
+                    argb: this.commonHelperService.rgbToHex(
+                      value['fillColor'][0],
+                      value['fillColor'][1],
+                      value['fillColor'][2]
+                    ),
+                  },
+                };
+                cell.font = {
+                  name: 'Calibri',
+                  color: { argb: 'ffffff' }
+                }
+              }
+
+              if (value['cellHeight']) {
+                columns.height = 25;
+              }
+              if (value['alignment']) {
+                columns.alignment = { vertical: value['alignment'] };
+              }
+            }
+          });
+        }
+      });
+    }
+
+    /* const idCol = worksheet.getColumn('id');
+const nameCol = worksheet.getColumn('B');
+const ageCol = worksheet.getColumn(3);
+ 
+
+nameCol.eachCell({ includeEmpty: true }, function(cell, rowNumber) {
+}); */
+
+    //row.addPageBreak();
+
+    /* worksheet.eachRow(function(row, rowNumber) {
+}); 
+row.eachCell(function(cell, colNumber) {
+});   
+const rowSize = row.cellCount;
+const numValues = row.actualCellCount;  
+worksheet.getCell('A1').dataValidation = {
+  type: 'list',
+  allowBlank: true,
+  formulae: ['"One,Two,Three,Four"']
+};
+
+
+  worksheet.getCell('A1').dataValidation = {
+  type: 'decimal',
+  operator: 'between',
+  allowBlank: true,
+  showInputMessage: true,
+  formulae: [2.5, 7],
+  promptTitle: 'Decimal',
+  prompt: 'The value must between 2.5 and 7'
+}; 
+
+worksheet.getCell('A1').font = {
+  name: 'Arial Black',
+  color: { argb: 'FF00FF00' },
+  family: 2,
+  size: 14,
+  italic: true
+};
+
+worksheet.getCell('A1').alignment = { vertical: 'top', horizontal: 'left' };
+
+worksheet.getCell('A1').alignment = { wrapText: true };
+
+worksheet.getCell('A1').border = {
+  top: {style:'double', color: {argb:'FF00FF00'}},
+  left: {style:'double', color: {argb:'FF00FF00'}},
+  bottom: {style:'double', color: {argb:'FF00FF00'}},
+  right: {style:'double', color: {argb:'FF00FF00'}}
+};
+ 
+
+
+*/
+ if(dataArr[0].columeFooterLagend){
+  worksheet.addRow({});
+   this.addLegendBedoreFooter(worksheet, workbook, dataArr[0].columeFooterLagend);
+ }
+    this.excelAddFooter(worksheet, workbook, footerImg);
+
+    workbook.xlsx.writeBuffer().then((data) => {
+      const blob = new Blob([data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8',
+      });
+
+      fs.saveAs(blob, options.filename.trim() + '.xlsx');
+    });
+
+    if (callback) {
+      callback();
+    }
+  }
+
+ 
+  excelAddHeader(workbook, worksheet, img, option) {
+    //Add Image
+    let myLogoImage = workbook.addImage({
+      base64: img,
+      extension: 'png',
+    });
+
+    worksheet.mergeCells('A1:C3');
+    worksheet.addImage(myLogoImage, {
+      tl: { col: 0.3, row: 0.3 },
+      ext: { width: 143, height: 53 },
+    });
+    let titleRowA1 = worksheet.getCell('A1');
+
+    titleRowA1.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '2a3042' },
+    };
+
+    worksheet.mergeCells('D1', 'J2');
+    let titleRow = worksheet.getCell('D1');
+
+    titleRow.value = option.heading;
+    titleRow.height = 12;
+    titleRow.font = {
+      name: 'Calibri',
+      size: 14,
+      // underline: 'single',
+      bold: true,
+      color: { argb: 'ffffff' },
+    };
+    titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    titleRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '2a3042' },
+    };
+
+    worksheet.mergeCells('D3', 'J3');
+    let titleRow1 = worksheet.getCell('D3');
+
+    titleRow1.value = `${option.headhtml}`;
+    titleRow1.font = {
+      name: 'Calibri',
+      size: 10,
+      color: { argb: 'ffffff' },
+    };
+    titleRow1.alignment = { vertical: 'top', horizontal: 'center' };
+
+    titleRow1.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '2a3042' },
+    };
+
+    // Date
+    worksheet.mergeCells('K1:N3');
+
+    let dateCell = worksheet.getCell('K1');
+    dateCell.value = '';
+    dateCell.font = {
+      name: 'Calibri',
+      size: 12,
+      bold: true,
+      color: { argb: 'ffffff' },
+    };
+    dateCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '2a3042' },
+    };
+
+    dateCell.alignment = { vertical: 'middle', horizontal: 'center' };
+  }
+
+/* add legend before footer */
+addLegendBedoreFooter(worksheet, workbook, legendData){
+  let lastRow = worksheet.addRow({});
+  for (const [key, value] of Object.entries(legendData)) {
+// let footerRow = worksheet.getCell(`A${lastRow.number+Number(key}`)
+let cell =lastRow.getCell(Number(key)+1);
+cell.value = value['name']
+cell.fill = {
+    type: 'pattern',
+  pattern:'solid',
+  fgColor:{argb:this.commonHelperService.rgbToHex(value['fillColor'][0],value['fillColor'][1],value['fillColor'][2])}, 
+  }
+  cell.font = {
+    name: 'Calibri',
+    color: { argb: 'ffffff' }
+  }
+
+    // let footerRow = worksheet.addRow(['Copyright ©2022 Echelon Edge Pvt Ltd']);
+
+    // footerRow.value = value['name'];
+    
+    lastRow.eachCell({ includeEmpty: true }, function(cell) {
+
+console.log(cell.address)
+      // worksheet.getCell(cell.address).fill = {
+      //   type: 'pattern',
+      // pattern:'solid',
+      // fgColor:{argb:'082646'}, 
+      // }
+    }) 
+  }
+}
+
+  excelAddFooter(worksheet, workbook, img) {
+    worksheet.addRow([]);
+    let lastRow = worksheet.addRow([]);
+    lastRow.height = 35;
+    //Add Image
+    let myLogoImage = workbook.addImage({
+      base64: img,
+      extension: 'png',
+    });
+
+    /*   hyperlinks: {
+    hyperlink: 'http://www.somewhere.com',
+    tooltip: 'http://www.somewhere.com'
+  } */
+
+    // Merge Cells
+    worksheet.mergeCells(`A${(lastRow.number)}:N${(lastRow.number)}`);
+    worksheet.addImage(myLogoImage, {
+      tl: { col: 12, row: lastRow.number - 1 },
+      ext: { width: 158, height: 60},
+    });
+    
+    //Footer Row
+    worksheet.getCell(`A${lastRow.number}`).alignment = {
+      vertical: 'middle',
+      horizontal: 'left',
+    };
+    let footerRow = worksheet.getCell(`A${lastRow.number}`)
+
+    // let footerRow = worksheet.addRow(['Copyright ©2022 Echelon Edge Pvt Ltd']);
+
+    footerRow.value = "Copyright ©2022 Echelon Edge Pvt Ltd";
+    footerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '082646' },
+    };
+    footerRow.font = {
+      bold: true,
+      color: { argb: 'FFFFFF' },
+      size: 10,
+    };
+    worksheet.lastRow.height = 50;
+
+    // Set a specific row height
+    // row.height = 60;
+    //Merge Cells
+    // worksheet.mergeCells(`A${footerRow.number}:N${footerRow.number}`);
+  }
+
+  download_pdfFile(
+    options: {
+      filename;
+      heading;
+      pagetype;
+      sizeunit;
+      pdfPWidth;
+      pdfPHeight;
+      imageonoff: boolean;
+      headhtml;
+      footerCallMultiTime: boolean;
+    },
+    dataArr: [
+      {
+        title?: string;
+        columns?: string[];
+        rows?: any;
+        columnStyles?: any;
+        images?: any[];
+        columeFooterLagend?: any;
+      }
+    ],
+    headerImg,
+    headerWidth,
+    headerHeight,
+    footerImg,
+    footerWidth,
+    footerHeight,
+    callback = null
+  ) {
+    let filename = options.filename.trim();
+    let heading = options.heading;
+    let pagetype = options.pagetype;
+    let sizeunit = options.sizeunit;
+    let pdfPWidth = options.pdfPWidth;
+    let pdfPHeight = options.pdfPHeight;
+    let imageonoff = options.imageonoff ? options.imageonoff : true;
+    let footerCallMultiTime = options.footerCallMultiTime
+      ? options.footerCallMultiTime
+      : false;
+    let headhtml = options.headhtml;
+
+    let doc;
+
+    if (
+      pagetype != '' &&
+      sizeunit != '' &&
+      pdfPWidth != '' &&
+      pdfPHeight != ''
+    ) {
+      doc = new jsPDF(pagetype, sizeunit, [pdfPWidth, pdfPHeight]);
+    } else {
+      return;
+    }
+
+    //One of 'a3', 'a4' (Default),'a5' ,'letter' ,'legal'
+    //doc = new jsPDF('p', 'in', "a4");
+
+    var totalPagesExp = '{total_pages_count_string}';
+
+    doc.setFontSize(8);
+    let pageHeight =
+      doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+    let pageWidth =
+      doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+
+    headerWidth = headerWidth / 100;
+    headerHeight = headerHeight / 100;
+    const imgRatio = headerWidth / headerHeight;
+    if (headerWidth > 2) {
+      headerWidth = 2;
+
+      if (headerHeight > 2) {
+        headerHeight = 0.8;
+      }
+    }
+
+    var margint_top = headerHeight + 0.3;
+
+    /*
+  doc.setProperties({
+   title: 'Title',
+   subject: 'This is the subject',
+   author: 'Author Name',
+   keywords: 'generated, javascript, web 2.0, ajax',
+   creator: 'Creator Name'
+  });
+  */
+    var specialElementHandlers = {
+      '#editor': function (element, renderer) {
+        return true;
+      },
+    };
+
+    var pageContent = function (data) {
+      // HEADER
+
+      doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255);
+      console.log(heading,'===========================');  
+    doc.text(heading, pageWidth / 2, 0.3, 'center');
+      doc.margins = 4;
+      // doc.addImage(headerImgData, 'JPEG', data.settings.margin.left, 15, 10, 10);
+      //  doc.text("Report", data.settings.margin.left + 15, 22);
+
+      // FOOTER
+      // Total page number plugin only available in jspdf v1.0+
+      if (typeof doc.putTotalPages === 'function') {
+        var str = 'Page ' + data.pageCount;
+        str = str + ' of ' + totalPagesExp;
+      }
+
+      doc.setFontSize(6);
+      doc.text(str, data.settings.margin.left, pageHeight - 0.1);
+    };
+
+    ///////////////// ----------- Header Setting  Start----------/////
+    this.addHeaders(
+      doc,
+      imageonoff,
+      headerImg,
+      headerWidth,
+      headerHeight,
+      headhtml
+    );
+
+    /*  doc.setFontSize(8);
+    var whatsInThisDiv =htmsl.replace(/<[^>]+>/g, '');
+        doc.text(whatsInThisDiv, (headerWidth+1),(headerHeight/1.2), 'left'); */
+
+    if (dataArr.length > 0) {
+      dataArr.forEach((d) => {
+        let finalY = doc.previousAutoTable.finalY;
+        finalY = finalY ? finalY : 0;
+
+        let imageHeight = 4;
+        let titleHeight = 0.35;
+        ///////////////// ----------- Header Setting  End----------/////
+        if (d.images) {
+          console.log(d.images,d,'**************************')
+          if (margint_top + imageHeight + titleHeight > pageHeight) {
+            console.log('datal image ');
+            
+            doc.addPage();
+            margint_top = 0.2;
+          } else {
+            if (finalY) {
+              margint_top = finalY;
+            }
+          }
+          doc.setFontSize(12);
+      doc.setTextColor(255, 255, 255);
+          doc.text(heading, pageWidth / 2, 0.3, 'center');
+          this.addTitle(doc, d.title, margint_top);
+if(d.images.length > 0){
+
+  d.images.map((item,i) => {
+    console.log('----',i);
+    
+   
+    doc.addImage(
+      item,
+      'GIF',
+      0.1,
+      margint_top + titleHeight,
+      8,
+      imageHeight
+    );
+    if(d.images.length >= i){
+      doc.addPage();
+    }
+    
+  })
+
+}
+// else{
+//   doc.addImage(
+//     d.images,
+//     'GIF',
+//     0.1,
+//     margint_top + titleHeight,
+//     8,
+//     imageHeight
+//   );
+// }
+         
+
+          
+          margint_top = margint_top + imageHeight + titleHeight;
+        } else {
+          console.log("dddddd===",d)
+          if (d.rows.length > 0) {
+            if (finalY) {
+              this.addTitle(doc, d.title, finalY);
+              margint_top = finalY + titleHeight;
+            } else {
+              this.addTitle(doc, d.title, margint_top);
+              margint_top = margint_top + 0.6;
+            }
+
+            doc.autoTable({
+              head: [d.columns],
+              body: d.rows,
+              showHead: 'firstPage', //everyPage'|'firstPage'|'never' = 'everyPage''
+              //showFoot: 'firstPage',   //everyPage'|'lastPage'|'never' = 'everyPage''
+              didDrawPage: pageContent,
+
+              margin: {
+                //top: margint_top,
+                top: 0.5,
+                left: 0.2,
+                right: 0.2,
+                bottom: 0.2,
+              },
+              tableWidth: 'auto',
+              //cellWidth: 'auto',
+              theme: 'grid', //striped or grid, plain
+              // columnStyles: { id: {fillColor: 255}  },
+              startY: margint_top,
+              styles: {
+                cellPadding: 0.2,
+                fontSize: 8,
+                valign: 'middle',
+                overflow: 'linebreak',
+                //tableWidth: 'auto',
+                lineWidth: 0,
+                // cellWidth: 'auto',
+              },
+              headStyles: {
+                //cellWidth: 'wrap',
+                cellPadding: 0.1,
+                lineWidth: 0,
+                valign: 'top',
+                fontStyle: 'bold',
+                halign: 'left', //'center' or 'right'
+                fillColor: [41, 128, 186],
+                textColor: [255, 255, 255], //White
+                fontSize: 8,
+              },
+              bodyStyles: {
+                //cellWidth: 'wrap',
+                cellPadding: 0.1,
+                fillColor: [255, 255, 255],
+                lineWidth: 0.01,
+                lineColor: [233, 235, 241],
+                textColor: [0, 0, 0],
+                fontSize: 7,
+              },
+              columnStyles: d.columnStyles,
+              /*   columnStyles: {
+       0: { cellWidth: 'wrap' }, //cellWidth(wrap/auto/.8),  fillColor: [20, 192, 126], textColor: 255,  fontStyle: 'bold', opacity: 0.2,
+    }   */
+            });
+          }
+        }
+
+        if (d.columeFooterLagend) {
+          this.createLabel(
+            doc,
+            d.columeFooterLagend,
+            doc.previousAutoTable.finalY + 0.2
+          );
+        }
+      });
+    }
+
+    // Total page number plugin only available in jspdf v1.0+
+    if (typeof doc.putTotalPages === 'function') {
+      doc.putTotalPages(totalPagesExp);
+    }
+
+    const pageCount = doc.internal.getNumberOfPages();
+
+    for (var i = 1; i <= pageCount; i++) {
+      if (footerCallMultiTime) {
+        this.addFooters(doc, footerImg, i, pageCount, false, dataArr);
+      } else {
+        if (i == pageCount) {
+          this.addFooters(doc, footerImg, pageCount, pageCount, false, dataArr);
+        } else {
+          this.addFooters(doc, footerImg, i, pageCount, true, dataArr);
+        }
+      }
+    }
+
+    doc.save(`${filename}.pdf`);
+    if (callback) {
+      callback();
+    }
+  }
+
+  addHeaders(doc, imageonoff, headerImg, headerWidth, headerHeight, headhtml) {
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+
+    doc.setDrawColor(8, 38, 70);
+    doc.setFillColor(8, 38, 70);
+    doc.rect(0, 0, doc.internal.pageSize.width, 0.6, 'FD');
+    doc.setDrawColor(13, 110, 253);
+    doc.setFillColor(13, 110, 253);
+
+    doc.setLineWidth(0.08);
+    doc.line(0, 0.7, doc.internal.pageSize.width, 0.7);
+    if (headerImg) {
+      if (imageonoff == true) {
+        doc.addImage(
+          headerImg,
+          'JPEG',
+          0.2,
+          0.15,
+          headerWidth / 1.2,
+          headerHeight / 1.2
+        );
+      }
+    }
+
+    doc.setFont('helvetica');
+    doc.setFontSize(8);
+
+    doc.setTextColor(255, 255, 255);
+
+    doc.text(headhtml, doc.internal.pageSize.width / 2, 0.47, {
+      align: 'center',
+    });
+
+    //var htmsl=` <span id="pdf_head_data" style="width:200px; float:left"> ${headhtml}   </span>`;
+
+    // doc.fromHTML(htmsl,(headerWidth+1),(headerHeight/1.2),{},{},{top: 0});
+  }
+
+  addTitle(doc, title, finalY) {
+    if (title) {
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(title, 0.2, finalY ? finalY + 0.3 : 1, 'left');
+    }
+  }
+
+  addFooters(doc, footerImg, i, pageCount, shortInfo = false, data: any) {
+    const pageHeight = doc.internal.pageSize.height - 0.5;
+
+    doc.setPage(i);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    if (shortInfo) {
+      doc.setTextColor(0, 0, 0);
+
+      doc.text(
+        'Page ' + String(i) + ' of ' + String(pageCount),
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 0.1,
+        {
+          align: 'center',
+        }
+      );
+    } else {
+      // legend Display pass dynamicly
+
+      doc.setDrawColor(13, 110, 253);
+      doc.setFillColor(13, 110, 253);
+
+      doc.setLineWidth(0.06);
+      doc.line(0, pageHeight, doc.internal.pageSize.width, pageHeight);
+      doc.setDrawColor(8, 38, 70);
+      doc.setFillColor(8, 38, 70);
+      doc.rect(0, pageHeight + 0.06, doc.internal.pageSize.width, 0.6, 'FD');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont('bold');
+      doc.text('Copyright ©2022 Echelon Edge Pvt Ltd', 0.2, pageHeight + 0.32, {
+        align: 'left',
+      });
+
+      doc.text(
+        'Page ' + String(i) + ' of ' + String(pageCount),
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 0.18,
+        {
+          align: 'center',
+        }
+      );
+
+      doc.addImage(
+        footerImg,
+        'JPEG',
+        doc.internal.pageSize.width - 1.9,
+        doc.internal.pageSize.height - 0.42,
+        1.69291,
+        0.393701
+      );
+    }
+  }
+
+  createLabel(doc, data, pageHeight) {
+    let x = 0.1;
+    data.forEach((d, i) => {
+      let w = doc.getTextDimensions(d.name);
+      //x=x+w.w;
+
+      doc.setDrawColor(...d['fillColor']);
+      doc.setFillColor(...d['fillColor']);
+
+      doc.rect(x, pageHeight, 0.5 + w.w, 0.2, 'FD');
+      doc.setTextColor(d.textColor[0]);
+      doc.setFontSize(8);
+      doc.text(d.name, x + 0.2, pageHeight + 0.15);
+      x += 0.5 + w.w;
+    });
+  }
+
+  download_csv(options, pdfData){
+    let workbook = new Workbook();
+      let worksheet = workbook.addWorksheet(pdfData[0].title);
+    let date = new Date().toLocaleString();
+    let arrayHeader = [pdfData[0].title, '', '', date];
+    for (let h = 3; h < pdfData[0].columns.length; h++) {
+      arrayHeader.push('');
+    }
+    worksheet.getRow(1).values = arrayHeader;
+    //Blank Row
+    worksheet.addRow([]);
+    //Adding Header Row
+    worksheet.addRow(pdfData[0].columns);
+    // Adding Data with Conditional Formatting
+    pdfData[0].rows.forEach((d) => {
+      let row = worksheet.addRow(d);
+    });
+  
+    worksheet.addRow([]);
+    worksheet.addRow(['Copyright ©2021 Echelon Edge Pvt Ltd']);
+  
+    workbook.csv.writeBuffer().then((data) => {
+      let blob = new Blob([data], { type: 'application/vnd.ms-excel' });
+      fs.saveAs(blob, pdfData[0].title + '-' + date + '.csv');
+    });
+  }
+}

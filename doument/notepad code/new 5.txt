@@ -1,0 +1,1003 @@
+import { EncryptData } from './../../services/encryptdata.service';
+import { CustomValidationService } from 'src/app/shared/services/custom-validation.service';
+import { Endpoints } from 'src/app/shared/endpoints';
+import { SessionMgtService } from './../../services/session-mgt.service';
+import { ErrorMessageService } from 'src/app/shared/services/error-message.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormControl,
+} from '@angular/forms';
+import { CommonService } from './../../services/common.service';
+import {
+  Component,
+  OnInit,
+  Output,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
+import { Subscription, Observable, firstValueFrom } from 'rxjs';
+import { CommonConstants } from '../../constants/common.constants';
+import { MasterService } from '../../services/master.service';
+
+@Component({
+  selector: 'app-create-report-scheduler',
+  templateUrl: './create-report-scheduler.component.html',
+  styleUrls: ['./create-report-scheduler.component.scss'],
+})
+export class CreateReportSchedulerComponent implements OnInit, OnDestroy {
+  getnotificationListSubscribe$: any;
+  SchedulerFormData$: any;
+
+  errorMessage: any = undefined;
+  errorMessages: any = {};
+  permission: any = {};
+  dateData: any = [];
+  daysData: any = [];
+  hoursData: any = [];
+  minutesData: any = [];
+  monthData: any = [];
+  notificationGroupData: any = [];
+  schedularLoaderData: boolean = false;
+  emailValid: boolean = false;
+  modalReference: any;
+  schedularForm: FormGroup;
+  createReportSchedule$: any;
+  testReportSchedule$: any;
+
+  sourceSubscribe: Subscription;
+  hostAndGroupSubscribe$: Subscription;
+
+
+  emailIdsArray: any = [];
+  editFormDataBefore: any;
+  scheduler_type: string = '';
+  scheduler_for: string = '';
+  componentType: string = 'popup';
+  @Output() refreshList: EventEmitter<any> = new EventEmitter();
+  @Output() myOutput: EventEmitter<string> = new EventEmitter();
+  @Input() reportScheduler: {
+    isEditFlag: boolean;
+    pageType: string;
+    pageTypeSub: string;
+    jobName: any;
+    indexValue?: number;
+    scheduler_type?: string;
+    componentType?: string;
+  };
+
+  jobName: any = [];
+  indexValue: number;
+  isEditFlag: boolean = false;
+  schdulerId: any = [];
+  isChangeDetect: boolean = false
+  defaultData: boolean = false
+  ruleNetworkShow: boolean = false
+  testNotification: boolean = false;
+
+  outputSchedulerIndex: any = []
+  emailids: string;
+  commonConstants: any = CommonConstants;
+
+
+
+  constructor(
+    private modalService: NgbModal,
+    private commonService: CommonService,
+    private ems: ErrorMessageService,
+    private SessionMgtService: SessionMgtService,
+    private formBuilder: FormBuilder,
+    private encryptData: EncryptData,
+    private endpoints: Endpoints,
+    private masterService: MasterService,
+
+  ) {
+    this.permission = this.commonService.permission('report-scheduler');
+  }
+
+  ngOnInit(): void {
+    console.log(this.reportScheduler, 'reportScheduler')
+
+    if (this.reportScheduler) {
+      this.componentType = this.reportScheduler.componentType;
+      this.scheduler_type = this.reportScheduler.scheduler_type;
+      this.scheduler_for = this.reportScheduler.pageType;
+
+      this.isEditFlag = this.reportScheduler.isEditFlag;
+      this.jobName = this.reportScheduler.jobName;
+      this.indexValue = this.reportScheduler.indexValue;
+    }
+
+    this.errorMessages = this.ems.rptrSchedulertErrorMessages;
+    this.schedularForm = this.formBuilder.group(
+      {
+        scheduler_type: [this.scheduler_type],
+        job_name: ['', Validators.required],
+        report_type: [null],
+        device_vendor: [''],
+        host: [],
+        hostgroups: [''],
+        email_subject: ['', [Validators.required, Validators.minLength(this.commonConstants.VALIDATION.emailSubject.min)]],
+        emails: [''],
+        notif_groups: [''],
+        days: [[]],
+        date: [[]],
+        minutes: [[]],
+        hours: [[]],
+        month: [[]],
+        seed_ip: [''],
+        snmp_type: [''],
+        community_string: [''],
+        security_name: [''],
+        security_password: ['', [Validators.minLength(this.commonConstants.VALIDATION.passwordNormal.min)]],
+        // kwargs:''
+      },
+      { updateOn: 'change' }
+    );
+
+
+
+    this.dateData = this.counterArray(1, 31);
+    this.hoursData = this.counterArray(0, 23);
+    this.minutesData = this.counterArray(0, 59);
+    this.monthData = [
+      { id: 1, name: 'January' },
+      { id: 2, name: 'February' },
+      { id: 3, name: 'March' },
+      { id: 4, name: 'April' },
+      { id: 5, name: 'May' },
+      { id: 6, name: 'June' },
+      { id: 7, name: 'July' },
+      { id: 8, name: 'August' },
+      { id: 9, name: 'September' },
+      { id: 10, name: 'October' },
+      { id: 11, name: 'November' },
+      { id: 12, name: 'December' },
+    ];
+    this.daysData = [
+      { id: 0, name: 'Sunday' },
+      { id: 1, name: 'Monday' },
+      { id: 2, name: 'Tuesday' },
+      { id: 3, name: 'Wednesday' },
+      { id: 4, name: 'Thursday' },
+      { id: 5, name: 'Friday' },
+      { id: 6, name: 'Saturday' },
+    ];
+    this.notificationGroupData = [];
+    this.onChanges();
+
+    //check  scheduler type
+    if (this.scheduler_type == 'Topology') {
+      this.ruleNetworkShow = true;
+      this.schedularForm.get('snmp_type').setValidators([Validators.required]);
+      this.schedularForm.get('seed_ip').setValidators([Validators.required, CustomValidationService.ipAddressValidator],);
+      // this.schedularForm.get('report_type').clearValidators();
+
+    } else if (this.scheduler_type == 'Project') {
+      this.schedularForm.get('emails').setValidators([Validators.required, CustomValidationService.emailValidator],);
+      this.outputSchedulerIndex = [{ name: "project" }]
+      // this.schedularForm.get('report_type').clearValidators();
+      this.defaultData = true
+
+    } else if (this.scheduler_type == 'Discovery') {
+
+    } else if (this.scheduler_type == 'Host Report') {
+      this.schedularForm.get('report_type').setValidators([Validators.required]);
+
+      this.outputSchedulerIndex = [{ name: "host" }]
+
+    } else if (this.scheduler_type == 'Service Report') {
+      this.schedularForm.get('report_type').setValidators([Validators.required]);
+
+      this.outputSchedulerIndex = [{ name: "service" }]
+
+    } else if (this.scheduler_type == "Backup") {
+      // this.schedularForm.get('report_type').clearValidators();
+      this.schedularForm.get('device_vendor').setValidators([Validators.required]);
+      this.selectHostOrGroup('host')
+
+    } else {
+      this.schedularForm.get('snmp_type').clearValidators();
+      this.schedularForm.get('seed_ip').clearValidators();
+      this.schedularForm.get('report_type').setValidators([Validators.required]);
+    }
+  }
+
+
+  // function to open pop up
+  openPopup(content, id) {
+    console.log(id);
+
+
+    this.myOutput.emit(this.outputSchedulerIndex);
+    this.schdulerId = id.id;
+    this.resetFormData();
+    let data = this.reportScheduler
+    this.testNotification = false;
+
+
+    if (!this.reportScheduler.isEditFlag) {
+      if (data.componentType == 'monitor') {
+        this.getnotificationGroup();
+
+      } else if (data.componentType == 'project') {
+        this.schedularForm.patchValue({ job_name: this.jobName.name + "_Schedule" })
+
+      } else if (data.componentType == 'backup') {
+        this.getnotificationGroup();
+        this.getHostAndGroup()
+
+      }
+    } else {
+      this.getnotificationGroup();
+
+
+      if (data.componentType == 'project') {
+        this.schdulerId = id.scheduler_id
+      }
+
+      else if (data.scheduler_type == 'Backup') {
+        // this.getHostAndGroup();
+
+        this.getHostAndGroup()
+
+        // this.getnotificationGroup();        
+        // this.getEditapi()
+
+      }
+      else{
+        this.getEditapi()
+      }
+
+
+
+    }
+
+
+    this.modalReference = this.modalService.open(content, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    this.modalReference.result.then(
+      (result) => { },
+      (reason) => this.myOutput.emit(this.outputSchedulerIndex)
+    );
+    this.isChangeDetect = false
+    return false;
+  }
+
+
+
+  getEditapi() {
+    this.getnotificationListSubscribe$ = this.schdulerList.subscribe(
+      (res) => {
+        if (res.resultCode == '1') {
+          // setTimeout(() => {
+            this.schedulerSetData(res.result);
+          // }, 400);
+
+
+        } else {
+          this.commonService.callAlert(
+            '',
+            this.commonService.getErrorMessage(res.errorMessage),
+            'error'
+          );
+        }
+      },
+      (error) => {
+        this.commonService.callAlert('');
+      }
+    );
+  }
+
+
+  // Submit the data of report
+  createNewReportSchedule() {
+    this.schedularLoaderData = true;
+    let reportData = this.schedularForm.value;
+
+    if (this.schedularForm.invalid) {
+      this.commonService.validateAllFields(this.schedularForm);
+      this.schedularLoaderData = false;
+      return;
+    }
+
+    if (this.checkIfInvalidMailExist()) {
+      this.commonService.callAlert(
+        'Oops!!',
+        this.commonService.getErrorMessage('Please enter valid email address.'),
+        'error'
+      );
+      this.schedularLoaderData = false;
+      return;
+    }
+
+
+    let emails = this.uniqByKeepFirst(this.emailIdsArray, (it) => it.email).map(
+      (a) => a.email
+    );
+
+    if (this.isEditFlag) {
+      if (reportData.notif_groups.length == 0 && this.emailIdsArray.length == 0) {
+        this.commonService.callAlert(
+          'Oops!!',
+          this.commonService.getErrorMessage(
+            'Please enter alteast one email address or select any notification group.'
+          ),
+          'error'
+        );
+        this.schedularLoaderData = false;
+        return;
+      }
+    } else {
+
+      if (this.emailIdsArray.length == 0 && reportData.notif_groups == 0 && this.componentType !== 'project') {
+
+        this.commonService.callAlert(
+          'Oops!!',
+          this.commonService.getErrorMessage(
+            ' Please enter alteast one email address or select any notification group.'
+          ),
+          'error'
+        );
+        this.schedularLoaderData = false;
+        return;
+      }
+      // else if(){
+
+      // }
+    }
+    let minute = reportData.minutes;
+    let hour = reportData.hours;
+    let month_of_year = reportData.month;
+    let day_of_week = reportData.days ? reportData.days : [];
+    let day_of_month = reportData.date ? reportData.date : [];
+
+
+    if (!reportData.snmp_type) {
+      reportData.seed_ip = '';
+      reportData.snmp_type = '';
+      reportData.community_string = '';
+      reportData.security_name = '';
+      reportData.security_password = '';
+    }
+
+
+    if (reportData.snmp_type == 'v3') {
+      reportData.snmp_type = 'snmp-v2';
+      reportData.community_string = '';
+    } else if (reportData.snmp_type == 'v2') {
+      reportData.snmp_type = 'snmp-v2';
+      reportData.security_name = '';
+      reportData.security_password = '';
+    } else if (reportData.snmp_type == 'v1') {
+      reportData.snmp_type = 'snmp-v1';
+      reportData.security_name = '';
+      reportData.security_password = '';
+    }
+    let job_name: string;
+    let args: any = [
+      this.reportScheduler.pageTypeSub
+        ? this.reportScheduler.pageTypeSub
+        : 'all',
+    ];
+    let kwargs: any = {}
+
+    if (this.scheduler_type == 'Project' && !this.isEditFlag) {
+      job_name = reportData.job_name
+      emails = [reportData.emails];
+      args = [];
+      kwargs = { proj_id: this.jobName.id }
+      this.outputSchedulerIndex = [{ name: "create" }]
+
+    } else if (this.scheduler_type == 'Backup' && !this.isEditFlag) {
+
+      job_name = reportData.job_name + "_Schedule";
+      args = [];
+
+    } else {
+      job_name = reportData.job_name;
+    }
+
+    console.log(this.schedularForm.value);
+
+
+    let formData = this.commonService.createFormData({
+      job_name: job_name,
+      scheduler_type: reportData.scheduler_type,
+      report_type: reportData.report_type,
+      vendor: reportData.device_vendor,
+      hosts: reportData.host ? JSON.stringify(reportData.host) : [],
+      host_group: reportData.hostgroups ? JSON.stringify(reportData.hostgroups) : [],
+      email_subject: reportData.email_subject,
+      emails: JSON.stringify(emails),
+      notif_groups: JSON.stringify(reportData.notif_groups),
+      minute: minute.length > 0 ? minute : '*',
+      hour: hour.length > 0 ? hour : '*',
+      args: JSON.stringify(args),
+      kwargs: JSON.stringify(kwargs),
+      day_of_week: day_of_week.length > 0 ? day_of_week : '*',
+      day_of_month: day_of_month.length > 0 ? day_of_month : '*',
+      month_of_year: month_of_year.length > 0 ? month_of_year : '*',
+      one_off: 'False',
+      scheduler_for: this.scheduler_for,
+      created_by: this.SessionMgtService.loginData.email,
+      seed_ip: reportData.seed_ip,
+      snmp_type: reportData.snmp_type,
+      community_string: reportData.community_string,
+      security_name: reportData.security_name,
+      security_password: this.encryptData.encryptData(reportData.security_password),
+      // kwargs:{id:'144'}
+
+    });
+    let tyleOfMethod = '';
+    let urlSchedule = '';
+
+
+    if (this.isEditFlag) {
+      tyleOfMethod = 'PUT';
+      formData.append('id', this.schdulerId);
+      urlSchedule = this.endpoints.EDIT_REPORT_SCHEDULE;
+      this.outputSchedulerIndex = {
+
+        id: this.reportScheduler.jobName,
+        index: this.indexValue
+      }
+    } else {
+      tyleOfMethod = 'POST';
+      urlSchedule = this.endpoints.CREATE_REPORT_SCHEDULE;
+    }
+
+    this.createReportSchedule$ = this.commonService
+      .commonRequest(tyleOfMethod, urlSchedule, formData)
+      .subscribe(
+        (res) => {
+          if (res.resultCode == 1) {
+
+            if (this.isEditFlag) {
+
+
+              this.modalReference.close();
+              this.commonService.callAlert(
+                '',
+                this.commonService.getErrorMessage(res.result),
+                'success'
+              );
+              // this.getnotificationGroup()
+            } else {
+              this.refreshList.emit();
+              this.modalReference.close();
+
+              this.commonService.callAlert(
+                '',
+                this.commonService.getErrorMessage(res.resultDescription),
+                'success'
+              );
+            }
+            this.myOutput.emit(this.outputSchedulerIndex);
+            this.resetFormData();
+            // if (this.scheduler_type != 'Project') {
+            //   this.modalReference.close();
+            // }
+            this.schedularLoaderData = false;
+
+          } else {
+            this.schedularLoaderData = false;
+            // this.modalReference.close()
+
+            this.commonService.callAlert(
+              'Oops!!',
+              this.commonService.getErrorMessage(res.errorMessage),
+              'error'
+            );
+          }
+
+        },
+        (error) => {
+          this.schedularLoaderData = false;
+          this.commonService.callAlert('');
+        }
+      );
+  }
+
+
+  // reset the form
+  resetFormData() {
+    this.testNotification = false
+
+    if (!this.isEditFlag) {
+      this.schedularForm.reset();
+      this.testNotification = false
+      this.emailValid = false;
+      this.emailIdsArray = [];
+
+      this.schedularForm.setValue({
+        job_name: '',
+        report_type: null,
+        device_vendor: null,
+        host: [],
+        hostgroups: [],
+        days: null,
+        email_subject: '',
+        emails: '',
+        notif_groups: [],
+        date: null,
+        minutes: [],
+        hours: [],
+        month: [],
+        scheduler_type: this.scheduler_type,
+        seed_ip: '',
+        snmp_type: '',
+        community_string: '',
+        security_name: '',
+        security_password: '',
+        // kwargs:''
+      })
+
+      if (this.reportScheduler.componentType == 'project') {
+        this.schedularForm.patchValue({ job_name: this.jobName.name })
+
+      }
+    } else {
+      console.log(this.editFormDataBefore);
+
+      this.schedularForm.reset(this.editFormDataBefore);
+      this.isChangeDetect = false
+    }
+
+    this.isChangeDetect = false
+  }
+
+
+
+
+
+  schedulerSetData(recieveData) {
+    this.schedularLoaderData = true
+    this.schedularForm.reset();
+
+
+
+    this.emailValid = false;
+
+    let schuSetDadta = recieveData;
+    if (schuSetDadta.is_default) {
+      this.defaultData = true
+    }
+    //  let dateDataNew = this.onSelectAll(this.monthData, 'date');
+    this.emailIdsArray = schuSetDadta.emails.map((sweetItem) => {
+      sweetItem.isValidEmail = true;
+      return sweetItem;
+    });
+
+
+
+    let seed_ip = '';
+    let snmp_type = '';
+    let community_string = '';
+    let security_name = '';
+    let security_password = '';
+
+    if (schuSetDadta.topo_rule.seed_ip) {
+      seed_ip = schuSetDadta.topo_rule.seed_ip;
+      snmp_type = schuSetDadta.topo_rule.snmp_type == 'snmp-v1'
+        ? 'v1'
+        : schuSetDadta.topo_rule.snmp_type == 'snmp-v2' &&
+          schuSetDadta.topo_rule.community_string
+          ? 'v2'
+          : schuSetDadta.topo_rule.snmp_type == 'snmp-v2' &&
+            schuSetDadta.topo_rule.security_name
+            ? 'v3' : '';
+      community_string = schuSetDadta.topo_rule.community_string;
+      security_name = schuSetDadta.topo_rule.security_name;
+      security_password = this.encryptData.decryptData(schuSetDadta.topo_rule.password);
+
+      this.onChangeSNMP()
+    }
+    let vender = ''
+
+
+
+    if (this.reportScheduler.scheduler_type == 'Backup') {
+
+      if (schuSetDadta.scheduled_hosts.length) {
+        this.flagHost = true
+        this.flagGroup = false
+
+      } else {
+        this.flagGroup = true
+        this.flagHost = false
+      }
+
+      schuSetDadta.scheduled_hosts.length ? schuSetDadta.scheduled_hosts.map((ele) => {
+        vender = ele.vendor
+
+        // console.log(ele, 'host ');
+
+
+        this.hostArr.push(ele);
+      }) : '',
+
+        schuSetDadta.scheduled_host_groups.length ? schuSetDadta.scheduled_host_groups.map((ele) => {
+          console.log(ele,'group');
+          
+          vender = ele.vendor
+          this.hostGroupArr.push(ele);
+
+        }) : '',
+
+
+        this.isChangeDetect = false
+
+    }
+
+    console.log(this.hostArr, this.hostGroupArr, 'await');
+
+
+    this.schedularForm.setValue({
+      scheduler_type: this.scheduler_type,
+      job_name: schuSetDadta.name,
+      report_type: schuSetDadta.report_type ? schuSetDadta.report_type : '',
+
+      device_vendor: this.reportScheduler.scheduler_type == 'Backup' ? vender : '',
+      host: schuSetDadta.scheduled_hosts ? schuSetDadta.scheduled_hosts.length ? schuSetDadta.scheduled_hosts.map((ele) => {
+        return ele.id;
+
+      }) : [] : [],
+      hostgroups: schuSetDadta.scheduled_host_groups ? schuSetDadta.scheduled_host_groups.length ? schuSetDadta.scheduled_host_groups.map((ele) => {
+        return ele.id;
+
+      }) : [] : [],
+
+      email_subject: schuSetDadta.email_subject,
+      emails: '',
+
+      notif_groups: schuSetDadta.groups.map((ele) => {
+        return ele.id;
+      }),
+
+      days: schuSetDadta.task.crontab.day_of_week == '*' ? [] : schuSetDadta.task.crontab.day_of_week.split(',').map(Number),
+      date: schuSetDadta.task.crontab.day_of_month == '*' ? [] : schuSetDadta.task.crontab.day_of_month.split(',').map(Number),
+      minutes: schuSetDadta.task.crontab.minute == '*' ? [] : schuSetDadta.task.crontab.minute.split(',').map(Number),
+      hours: schuSetDadta.task.crontab.hour == '*' ? [] : schuSetDadta.task.crontab.hour.split(',').map(Number),
+      month: schuSetDadta.task.crontab.month_of_year == '*' ? [] : schuSetDadta.task.crontab.month_of_year.split(',').map(Number),
+
+      seed_ip: seed_ip ? seed_ip : '',
+      snmp_type: snmp_type ? snmp_type : '',
+      community_string: community_string ? community_string : "",
+      security_name: security_name ? security_name : '',
+      security_password: security_password ? security_password : '',
+    });
+    console.log('set value');
+
+
+    if (this.scheduler_type == "Project") {
+      if (this.emailIdsArray.length > 0) {
+
+        this.emailids = this.emailIdsArray[0].email
+        this.schedularForm.controls['emails'].setValue(this.emailids);
+      }
+    }
+    console.log(this.hostArr, this.hostGroupArr, 'set valu');
+
+    this.editFormDataBefore = this.schedularForm.value;
+
+    this.isChangeDetect = false;
+    this.commonService.validateAllFields(this.schedularForm);
+    this.schedularLoaderData = false
+
+  }
+
+
+
+  flagHost: boolean = true
+  flagGroup: boolean = false
+  // host and host group listing and validation
+  selectHostOrGroup(value) {
+
+    if (value == 'host') {
+      this.flagHost = true;
+      this.flagGroup = false;
+
+      this.schedularForm.controls["host"].setValidators([Validators.required]);
+      this.schedularForm.get("host").updateValueAndValidity();
+
+      this.schedularForm.controls['hostgroups'].clearValidators();
+      this.schedularForm.get("hostgroups").updateValueAndValidity();
+
+
+    } else {
+      this.flagHost = false;
+      this.flagGroup = true;
+
+      this.schedularForm.controls['host'].clearValidators();
+      this.schedularForm.get("host").updateValueAndValidity();
+
+      this.schedularForm.controls['hostgroups'].setValidators([Validators.required]);
+      this.schedularForm.get("hostgroups").updateValueAndValidity();
+
+    }
+
+  }
+  hostArr = [];
+  hostGroupArr = [];
+
+  // host and host group api callback = null
+  getHostAndGroup() {
+    this.schedularLoaderData = true
+
+    let data = { 'first': this.endpoints.SCHEDULER_HOST, 'second': this.endpoints.SCHEDULER_HOSTGROUP,
+  'three': this.endpoints.NOTIFICATION_GROUP, 'four':this.endpoints.SCHEDULER_REPORT + '?id=' + this.schdulerId }
+    this.hostAndGroupSubscribe$ = this.masterService
+      .schedulerApi(data)
+      .subscribe(
+        (res) => {
+          console.log(res);
+          this.schedularLoaderData = false
+          if (res[0].resultCode == "1") {
+            this.hostArr = [];
+            this.hostArr = res[0].results;
+
+          }
+          else {
+            this.commonService.callAlert(
+              '',
+              this.commonService.getErrorMessage(res.resultDescription)
+            );
+          }
+          if (res[1].resultCode == "1") {
+            this.hostGroupArr = [];
+            this.hostGroupArr = res[1].results;
+
+          } else {
+            this.commonService.callAlert(
+              '',
+              this.commonService.getErrorMessage(res.resultDescription)
+            );
+          }
+          if (res[2].resultCode == "1") {
+            this.notificationGroupData = [];
+            this.notificationGroupData = res[2].results;
+
+          } else {
+            this.commonService.callAlert(
+              '',
+              this.commonService.getErrorMessage(res.resultDescription)
+            );
+          }
+          if (res[3].resultCode == "1") {
+            this.hostGroupArr = [];
+            this.hostGroupArr = res[3].result;
+            this.schedulerSetData(res[3].result);
+          } else {
+            this.commonService.callAlert(
+              '',
+              this.commonService.getErrorMessage(res.resultDescription)
+            );
+          }
+
+         
+
+        },
+        (error) => {
+          this.schedularLoaderData = false
+          this.commonService.callAlert();
+        }
+      );
+  }
+
+
+  // function will check if any change happened in Edit user Popup.
+  onChanges(): void {
+    this.SchedulerFormData$ = this.schedularForm.valueChanges.subscribe((val) => {
+      if (val) {
+        this.isChangeDetect = true;
+      }
+    });
+  }
+
+
+
+  // Test if emails are valid or not
+  reportScheduleTest() {
+    this.schedularLoaderData = true;
+    if (this.emailIdsArray.length == 0) {
+      this.commonService.callAlert(
+        'Oops!!',
+        this.commonService.getErrorMessage(
+          'Please enter atleast one email address.'
+        ),
+        'error'
+      );
+      this.schedularLoaderData = false;
+      return;
+    } else {
+      if (this.checkIfInvalidMailExist()) {
+        this.commonService.callAlert(
+          'Oops!!',
+          this.commonService.getErrorMessage(
+            'Please enter valid email address.'
+          ),
+          'error'
+        );
+        this.schedularLoaderData = false;
+        return;
+      }
+    }
+    let emails = this.uniqByKeepFirst(this.emailIdsArray, (it) => it.email).map(
+      (a) => a.email
+    );
+    let formData = this.commonService.createFormData({
+      emails: JSON.stringify(emails),
+    });
+
+    this.testReportSchedule$ = this.commonService
+      .postRequest(this.endpoints.TEST_REPORT_SCHEDULE, formData)
+      .subscribe(
+        (res) => {
+          if (res.resultCode == 1) {
+            this.testNotification = true;
+
+            this.schedularLoaderData = false;
+            this.commonService.callAlert(
+              '',
+              this.commonService.getErrorMessage(res.resultDescription),
+              'success'
+            );
+          } else {
+            this.schedularLoaderData = false;
+            this.commonService.callAlert(
+              'Oops!!',
+              this.commonService.getErrorMessage(res.errorMessage),
+              'error'
+            );
+          }
+        },
+        (error) => {
+          this.schedularLoaderData = false;
+          this.commonService.callAlert();
+        }
+      );
+  }
+
+  // this function handle the Multiple email functionality.
+  enterEmails(event, isFocusOut) {
+    if (event.key === 'Enter' || isFocusOut) {
+      event.preventDefault();
+      if (event.target.value) {
+        const emailArray = event.target.value.split(',');
+        const re =
+          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        emailArray.forEach((value: string, key: string) => {
+          if (value) {
+            if (!re.test(String(value).toLowerCase())) {
+              this.emailValid = true;
+            }
+            this.emailIdsArray.push({
+              isValidEmail: re.test(String(value).toLowerCase()),
+              email: value.toLowerCase(),
+            });
+          }
+        });
+        event.target.value = '';
+      }
+    }
+  }
+
+  // Remove the emails when user click on cross button
+  removeEmail(index: number) {
+    this.emailIdsArray.splice(index, 1);
+    this.emailValid = this.checkIfInvalidMailExist();
+  }
+
+  // Get all the Unique data from array
+  uniqByKeepFirst(a, key) {
+    let seen = new Set();
+    return a.filter((item) => {
+      let k = key(item);
+      return seen.has(k) ? false : seen.add(k);
+    });
+  }
+
+  // This method creates a number array
+  counterArray(s: number, n: number) {
+    let arrayToCreate = [];
+    for (let i = s; i <= n; i++) {
+      let name = i;
+      if (s == 0) {
+        name = i + 1;
+      }
+
+
+
+      arrayToCreate.push({ id: i, name: name });
+    }
+    return arrayToCreate;
+  }
+
+  // Check if invalid email exist in array
+  checkIfInvalidMailExist() {
+    return this.emailIdsArray.some((el) => el.isValidEmail === false);
+  }
+
+  public onSelectAll(data: any, key: string) {
+    const selected = data.map((item) => item.id);
+    this.schedularForm.get(key).patchValue(selected);
+    return false;
+  }
+
+
+  // notification Group   list drop down list
+  getnotificationGroup() {
+    this.notificationGroupData = [];
+    this.getnotificationListSubscribe$ = this.groupNotificationList.subscribe(
+      (res) => {
+        if (res.resultCode == '1') {
+          this.notificationGroupData = res.results;
+        } else {
+          this.commonService.callAlert(
+            '',
+            this.commonService.getErrorMessage(res.errorMessage),
+            'error'
+          );
+        }
+      },
+      (error) => {
+        this.commonService.callAlert('');
+      }
+    );
+  }
+
+
+  onChangeSNMP() {
+    if (this.schedularForm.get('snmp_type').value == 'v3') {
+      this.schedularForm.get('community_string').clearValidators();
+
+      this.schedularForm.get('security_name').setValidators([Validators.required, Validators.minLength(this.commonConstants.VALIDATION.securityName.min)]);
+      this.schedularForm.get('security_password').setValidators([Validators.required, Validators.minLength(this.commonConstants.VALIDATION.passwordNormal.min)]);
+
+      this.schedularForm.get('security_name').updateValueAndValidity();
+      this.schedularForm.get('security_password').updateValueAndValidity();
+      this.schedularForm.get('community_string').updateValueAndValidity();
+
+
+    } else {
+      this.schedularForm.get('community_string').setValidators([Validators.required]);
+
+      this.schedularForm.get('security_name').clearValidators();
+
+      this.schedularForm.get('security_password').clearValidators();
+
+      this.schedularForm.get('security_name').updateValueAndValidity();
+      this.schedularForm.get('security_password').updateValueAndValidity();
+      this.schedularForm.get('community_string').updateValueAndValidity();
+
+    }
+  }
+  // get group Notification List
+  public get groupNotificationList(): Observable<any> {
+    return this.commonService.getRequest(
+      `${this.endpoints.NOTIFICATION_GROUP}`
+    );
+  }
+
+  // get sechuler  Notification List
+  public get schdulerList(): Observable<any> {
+    return this.commonService.getRequest(
+      `${this.endpoints.SCHEDULER_REPORT + '?id=' + this.schdulerId}`
+    );
+  }
+
+  // Unsubscribe the Subscribed observable in ngOnDestroy method.
+  ngOnDestroy() {
+    // this.getnotificationListSubscribe$ ? this.getnotificationListSubscribe$.unsubscribe() : '';
+    this.hostAndGroupSubscribe$ ? this.hostAndGroupSubscribe$.unsubscribe() : '';
+  }
+}

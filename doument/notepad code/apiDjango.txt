@@ -1,0 +1,6 @@
+API :- Application Programming Interface (private, partner, public)
+REST :- Rest (guideline)
+
+http://www.rt.com/api/manager  basic url :- http://www.rt.com
+							   naming convention :- api/
+							   end point :-  manager

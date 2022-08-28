@@ -1,0 +1,533 @@
+import { ConfigService } from './services/config.service'; 
+import { SessionMgtService } from './services/session-mgt.service';
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class Endpoints {
+    // public DOMAIN: string='http://echelonedge.nms.com';
+    public DOMAIN: string   //='http://admin.nms.com';
+    public PORT: string   //=':8001/'; // for uat 8002, QA 8001 and dev 8000
+    public SOCKET_PORT: string=':8011/';
+    public IP_PORT: string='';
+    public WEBSOCKETIP_PORT: string='';
+    public GET_ORGNIZATION: string='';
+    public GET_PERMISSION: string='';
+    public ADD_HOSTGROUP: string='';
+    public HOST_DETAIL :string = '';
+    public HOST_STATUS :string = '';
+    public HOST_DETAIL_DELETE :string = '';
+    public LOGIN_API: string='';
+    public LOGIN_API_FINAL: string='';
+    public GET_CHECKMK_KPI: string='';
+    public GET_CHECKMK_KPI_CMD: string='';
+    public GET_CHECKMK_KPI_SERVICE_AVAILABILITY: string='';
+    public GET_CHECKMK_KPI_HOST_AVAILABILITY: string='';
+    public REFRESH_TOKEN: string='';
+    public ACCOUNT_ORGANIZATION: string='';
+    public ACCOUNT_TENANT_ADMIN: string='';
+    public ACCOUNT_USER: string='';
+    public ACCOUNT_USER_DATA: string='';
+    public EXPORT_USER_LIST: string='';
+    public ACCOUNT_USER_DATA_FROM_SERVER: string='';
+    public SCHEDULER: string='';
+    public CHECK_LOGIN: string='';
+    public LOGOUT_ALL: string='';
+    public USER_BLOCK: string='';
+    public CHANGE_PASSWORD: string='';
+    public RESET_LINK: string='';
+    public VERIFY_OTP: string='';
+    public RESET_PASSWORD: string='';
+    public ADD_CITY: string='';
+    public BULK_CITY: string='';
+    public BULK_HOST: string='';
+    public ADD_COUNTRY: string='';
+    public GET_COUNTRY: string='';
+    public COUNTRY_LIST:string='';
+    public STATE_LIST:string='';
+    public COUNTRY_BASED_STATE:string='';
+    public STATE_BASED_CITY:string='';
+    public GET_HOST_GROUP:string='';
+    public GET_STATE_PAGINATION :string = '';
+    public GET_CITY_PAGINATION :string ='';
+    public GIS_MAP :string = '';
+   public MONITORING_INSTANCE:string=';'
+   public MONITORING_INSTANCE_LOGIN:string=';'
+   public CREATE_HOST:string=';'
+   public GIS_HOSTSTATIC:string=';'
+   public DELETE_COUNTRY: string='';
+   public HOST_DOWNTIMES:string='';
+   public SMTP_TESTCONNECTION:string='';
+   public SMTP_CONFIG:string='';
+   public HOST_DISCOVERY_DETAILS:string='';
+   public CREATE_REPORT_SCHEDULE:string='';
+   public EDIT_REPORT_SCHEDULE:string='';
+   public ACCOUNT_USER_DATA_PROFILE:string='';
+   public TEST_REPORT_SCHEDULE:string='';
+   public RUN_HOST_SERVICE_DISCOVERY:string='';
+   public DISCOVERY_TASK_STATUS:string='';
+   public DISCOVERED_HOST_ADD='';
+   public SCHEDULER_DELETE='';
+   public SCHEDULER_HOST='';
+   public SCHEDULER_HOSTGROUP='';
+
+   public CREATE_VARIABLE:string='';
+   public CREATE_PLAYBOOK:string='';
+   public LIST_PLAYBOOK:string='';
+   public API_TOPOLOGY:string='';
+   public INVENTORY_DETAIL:string='';
+   public PROJECT_DETAIL:string='';
+   public VARIABLE_PAGINATION:string='';
+   public PROJECT_INVENTORY_DETAIL:string='';
+   public PROJECT_INVENTORY_PAGINATION:string='';
+   public API_TOPOLOGY_NETWORK:string='';
+   public API_TOPOLOGY_NETWORKUPDATE:string='';
+
+   public PLAYBOOK_LIST:string='';
+   public INVENTORY_LIST:string=''
+
+   public DB_TYPE:string='';
+   public DB_INVENTORY:string='';
+   public DISCOVERY_RULE:string='';
+   public DISCOVERY_SERVICE_RULE:string='';
+
+
+   public NOTIFICATION_GROUP:string='';
+   public NOTIFICATION_GROUP_PAGINATION:string='';
+   public ALERT_CENTER_PAGINATION:string='';
+   public ALERT_CENTER:string='';
+   public ALERT_CENTER_CONFIG:string='';
+   public ALERTCENTER_TEST_EMAIL:string='';
+   public LAUNCH_SCHEDULER:string='';
+
+
+   public DISCOVERY_BULK_SERVICE:string=''
+   public CREATE_ACKNOWLEDGE_ALERT:string='';
+   public GET_ACKNOWLEDGE_ALERT:string=''
+   public REFRESH_SCHEDULER:string=''
+   public SCHEDULER_ONOFF:string=''
+   public SCHEDULER_REPORT:string=''
+   public ALERT_NOTIFICATION:string='';
+
+   public TICKETING_TEST:string='';
+   public TICKETING_SAVE:string='';
+
+   public HISTORY_ALERT_LISTING='';
+   public USER_LOGS :string= ''
+   public ADD_PROJECT:string='';
+   public SCHEDULER_LOGS:string=''
+   public ACTIVATE_CHANGES:string='';
+   public SCHEDULER_JOB_STATUS:string='';
+   public TICKET_STATUS:string ='';
+  public REMOTE_CONNECTION:string='' ;
+  public COMPARE_BACKUP_HOST_LIST:string='' ;
+  public COMPARE_BACKUP_BKP:string='' ;
+  public GTE_TIME_LINE:string='';
+  public GTE_HOST_TIME_LINE:string='';
+  public GTE_SERVICE_TIME_LINE:string='';
+  public TRACEROUTE:string='';
+  public CHECK_URL:string='';
+  public URL_MONITORING:string='';
+  public URL_MONITORING_Data:string='';
+  public URL_MANAGE_ADD_URL:string='';
+  public URL_MANAGE_GET_URL:string='';
+  public RCA_CREATE: string='';
+  public PROJECT_SUMMARY: string='';
+  public NETFLOW_LIST:string=''
+  public METRIC: string='';
+   public ADD_METRIC: string='';
+  public UPDATE_METRIC: string='';
+
+  public SERVICE_HISTORY: string = '';
+  public HOST_SERVICE_HISTORY: string = '';
+  public USER_LOG_FILTER: string = '';
+  public HOST_HISTORY: string = '';
+  public SCHEDULE_SUMMARY: string = '';
+  public TRAFFIC_RESOURCE: string = '';
+  public USER_METRIC: string = '';
+  public TRAFFIC_TRAFFIC_ANALYZER: string = '';
+  public TRAFFIC_TRAFFIC_TALKERS: string = '';
+  public MONITORING_PERIOD: string = '';
+  public MONITORING_PERIOD_ADD: string = '';
+
+  //docker Api
+  public DOCKER_MONITORING: string = '';
+  public DOCKER_Add: string = '';
+  public MONITORING_PERIOD_LIST_WITHOUT_PAGE: string = '';
+  public FORECASTING_ADD: string = '';
+  public GET_MON_CONTAINER:string='';
+
+  // ------------------------------ For start socket endpoint  ------------------------------
+  public WEBSOCKETURL: string = '';
+  public SOCKET_TRACE_ROUTE: string = '';
+  public SOCKET_TOPO_DEVICE_DATA: string = '';
+  // ------------------------------ For end socket endpoint   ------------------------------
+
+
+  /* Host and service search */
+  public ALL_SERVICE_LIST : string = ''
+  public RESET_HOST_MANAGEMENT: string='';
+  public GET_FILTERED_DATA : string = ''
+  public GET_THRESHOLD_DATA: string='';
+  public HOST_MONITORING_PERIOD: string='';
+  public HOST_MONITORING_PERIOD_SERVICE_NAME: string='';
+  public THRESHOLDS_ADD: string='';
+  
+  public CHECKMK_SEARCH_QUERY: string='';
+
+  public GET_MARKER : string = '';
+  public MARKER_HOST : string = '';
+  public NOTIFICATION_BELL:string ='';
+
+  public CREATE_HOST_DASHBOARD:string ='';
+  public CREATE_HOST_SERVICE_STATUS:string ='';
+  public CREATE_HOST_ALL_SERVICE:string ='';
+
+  public NETFLOW_VERSION:string ='';
+  public BACKUP_BARCHART:string ='';
+
+
+  
+  
+  
+  constructor(private sessionMgtService: SessionMgtService, private configService: ConfigService) {
+    
+    this.getDomain();
+  }
+  getDomain() {
+    
+    let domainUrl = this.sessionMgtService.domainUrl();
+    
+    if (domainUrl) {
+      this.DOMAIN = domainUrl;
+    } else {
+      this.DOMAIN = this.configService.apiUrl;
+    }
+this.PORT=":"+this.configService.port+"/";
+
+    this.IP_PORT =this.DOMAIN + this.PORT;
+
+    // ------------------------------ For start socket endpoint  ------------------------------
+
+    this.WEBSOCKETIP_PORT = this.DOMAIN.replace('http', 'ws') + this.PORT;
+
+    this.WEBSOCKETURL = this.WEBSOCKETIP_PORT + 'ws/sc2/';
+    this.SOCKET_TRACE_ROUTE = this.WEBSOCKETIP_PORT + 'ws/traceroute/';
+    this.SOCKET_TOPO_DEVICE_DATA =
+      this.WEBSOCKETIP_PORT + 'ws/topo_device_data/';
+
+    this.IP_PORT = this.DOMAIN + this.PORT;
+    // backup schedule
+    this.SCHEDULER_HOST = this.IP_PORT + 'config-backup/backup-host-list/';
+    this.SCHEDULER_HOSTGROUP =
+      this.IP_PORT + 'config-backup/backup-hostgroup-list/';
+
+    this.DB_TYPE = this.IP_PORT + 'inventory/db-type/';
+    this.DB_INVENTORY = this.IP_PORT + 'inventory/db-inventory/';
+    this.DISCOVERY_RULE = this.IP_PORT + 'discovery/discovery-rule/';
+
+    this.DISCOVERY_SERVICE_RULE = this.IP_PORT + 'discovery/service-rule/';
+
+    this.DISCOVERED_HOST_ADD = this.IP_PORT + 'discovery/discovered-host-add/';
+
+    this.NOTIFICATION_GROUP = this.IP_PORT + 'alert-center/notification-group/';
+    this.NOTIFICATION_GROUP_PAGINATION =
+      this.IP_PORT + 'alert-center/notification-pagination/';
+    this.ALERT_CENTER_PAGINATION =
+      this.IP_PORT + 'alert-center/alert-center-pagination/';
+    this.ALERT_CENTER = this.IP_PORT + 'alert-center/alert-center/';
+
+    this.ALERT_CENTER_CONFIG = this.IP_PORT + 'alert-center/alert-config/';
+    this.ALERTCENTER_TEST_EMAIL = this.IP_PORT + 'alert-center/test-email/';
+    this.LAUNCH_SCHEDULER = this.IP_PORT + 'scheduler/launch-scheduler/';
+
+    this.DISCOVERY_BULK_SERVICE =
+      this.IP_PORT + 'discovery/run-bulk-host-service-discovery/';
+    this.SCHEDULER_DELETE = this.IP_PORT + 'scheduler/delete-scheduler/';
+
+    this.CREATE_ACKNOWLEDGE_ALERT =
+      this.IP_PORT + 'alert-center/acknowledge-alert/';
+    // this.GET_ACKNOWLEDGE_ALERT=this.IP_PORT+'alert-center/get-acknowledge-alert/';
+    this.REFRESH_SCHEDULER = this.IP_PORT + 'scheduler/refresh-scheduler/';
+    this.SCHEDULER_ONOFF = this.IP_PORT + 'scheduler/onoff-scheduler/';
+    this.SCHEDULER_REPORT = this.IP_PORT + 'scheduler/single-job/';
+    this.ALERT_NOTIFICATION = this.IP_PORT + 'alert-center/alert-center/';
+
+    this.CREATE_VARIABLE = this.IP_PORT + 'network-management/variable/';
+    this.VARIABLE_PAGINATION =
+      this.IP_PORT + 'network-management/variable-pagination/';
+    this.CREATE_PLAYBOOK = this.IP_PORT + 'network-management/playbook/';
+    this.LIST_PLAYBOOK =
+      this.IP_PORT + 'network-management/playbook-pagination/';
+    this.API_TOPOLOGY = this.IP_PORT + 'network-management/topology/';
+    this.API_TOPOLOGY_NETWORK =
+      this.IP_PORT + 'network-management/topology-schedule/';
+    this.API_TOPOLOGY_NETWORKUPDATE =
+      this.IP_PORT + 'network-management/topo-devices-data/';
+    this.INVENTORY_DETAIL =
+      this.IP_PORT + 'network-management/projectinventory/';
+    this.PROJECT_INVENTORY_DETAIL =
+      this.IP_PORT + 'network-management/projectinventory/';
+    this.PROJECT_DETAIL =
+      this.IP_PORT + 'network-management/project-pagination/';
+    this.PROJECT_INVENTORY_PAGINATION =
+      this.IP_PORT + 'network-management/projectinventory-pagination/';
+
+    this.TICKETING_TEST = this.IP_PORT + 'ticket/test-connection/';
+    this.TICKETING_SAVE = this.IP_PORT + 'ticket/save-connection/';
+
+    this.HISTORY_ALERT_LISTING =
+      this.IP_PORT + 'alert-center/sent-alert-pagination/';
+    //  network-management/project/
+
+    this.PLAYBOOK_LIST =
+      this.IP_PORT + 'network-management/unassigned-playbook/';
+    this.INVENTORY_LIST =
+      this.IP_PORT + 'network-management/unassigned-projectinv/';
+    this.ADD_PROJECT = this.IP_PORT + 'network-management/project/';
+    this.ACTIVATE_CHANGES = this.IP_PORT + 'checkmkapi/activate-changes/';
+    this.SCHEDULER_JOB_STATUS = this.IP_PORT + 'scheduler/job-status/';
+    this.SCHEDULER_LOGS = this.IP_PORT + 'scheduler/scheduler-log/';
+    this.TICKET_STATUS = this.IP_PORT + 'ticket/ticket-status/';
+
+    // remote DeskTop
+    this.REMOTE_CONNECTION = this.IP_PORT + 'remote-connection/get-token/';
+    this.USER_LOGS = this.IP_PORT + 'account/user-activity-pagination/';
+    this.COMPARE_BACKUP_HOST_LIST =
+      this.IP_PORT + 'config-backup/backup-compare-host-list/';
+    this.COMPARE_BACKUP_BKP = this.IP_PORT + 'config-backup/backup-host-bkp/';
+
+    //Time line
+    this.GTE_HOST_TIME_LINE = this.IP_PORT + 'checkmkapi/host-timeline/';
+    this.GTE_SERVICE_TIME_LINE = this.IP_PORT + 'checkmkapi/service-timeline/';
+    //url Management & Monitoring
+    this.CHECK_URL = this.IP_PORT + 'url-monitoring/check-url/';
+    this.URL_MANAGE_ADD_URL = this.IP_PORT + 'url-monitoring/add-url/';
+    this.URL_MANAGE_GET_URL = this.IP_PORT + 'url-monitoring/url-pagination/';
+    this.URL_MONITORING =
+      this.IP_PORT + 'url-monitoring/url-monitor-pagination/';
+
+    this.TRACEROUTE = this.IP_PORT + 'traceroute/find-traceroute/';
+    this.RCA_CREATE = this.IP_PORT + 'rca/rca-create/';
+
+    this.PROJECT_SUMMARY = this.IP_PORT + 'network-management/project-summary/';
+    this.NETFLOW_LIST = this.IP_PORT + 'network-flow/netflow/';
+
+    this.METRIC = this.IP_PORT + 'metric/default-metric/';
+    this.ADD_METRIC = this.IP_PORT + 'metric/default-metric/'
+    this.UPDATE_METRIC = this.IP_PORT + 'metric/default-metric/'
+
+    this.USER_LOG_FILTER = this.IP_PORT + 'account/user_activity_filter/';
+
+    // ------------------------------ For end socket endpoint   ------------------------------
+    this.GET_ORGNIZATION = this.IP_PORT + 'account/get-organization/?';
+    this.LOGIN_API = this.IP_PORT + 'account/get-organization/?';
+    this.LOGIN_API_FINAL = this.IP_PORT + 'account/token/';
+    this.CHECK_LOGIN = this.IP_PORT + 'account/logged-in/';
+    this.LOGOUT_ALL = this.IP_PORT + 'account/logoff/';
+    this.USER_BLOCK = this.IP_PORT + 'account/block-user/';
+    this.CHANGE_PASSWORD = this.IP_PORT + 'account/change-password/';
+    this.RESET_LINK = this.IP_PORT + 'account/send-resetlink/';
+    this.VERIFY_OTP = this.IP_PORT + 'account/verify-otp/';
+    this.RESET_PASSWORD = this.IP_PORT + 'account/reset-pasword/';
+
+    this.GET_CHECKMK_KPI = this.IP_PORT + 'checkmkapi/get-checkmk-kpi/';
+    this.GET_CHECKMK_KPI_CMD = this.IP_PORT + 'checkmkapi/checkmk-cmd/';
+    this.GET_CHECKMK_KPI_SERVICE_AVAILABILITY =
+      this.IP_PORT + 'checkmkapi/service-availability/';
+    this.GET_CHECKMK_KPI_HOST_AVAILABILITY =
+      this.IP_PORT + 'checkmkapi/host-availability/';
+    this.REFRESH_TOKEN = this.IP_PORT + 'account/token/refresh/';
+    this.ACCOUNT_ORGANIZATION = this.IP_PORT + 'account/organization/';
+    this.ACCOUNT_TENANT_ADMIN = this.IP_PORT + 'account/tenant_admin/';
+    this.ACCOUNT_USER = this.IP_PORT + 'account/create-user/';
+    this.ACCOUNT_USER_DATA = this.IP_PORT + 'account/user/';
+    this.EXPORT_USER_LIST = this.IP_PORT + 'account/all-user/';
+    this.ACCOUNT_USER_DATA_PROFILE = this.IP_PORT + 'account/profile-image/';
+    this.ACCOUNT_USER_DATA_FROM_SERVER =
+      this.IP_PORT + 'account/user-pagination/';
+    this.SCHEDULER = this.IP_PORT + 'scheduler/scheduler/';
+    this.GET_PERMISSION = this.IP_PORT + 'account/group/';
+    this.ADD_CITY = this.IP_PORT + 'inventory/city/';
+    this.BULK_CITY = this.IP_PORT + 'inventory/bulk-city/';
+    this.COUNTRY_LIST = this.IP_PORT + 'inventory/country/';
+    this.STATE_LIST = this.IP_PORT + 'inventory/state/';
+    this.ADD_COUNTRY = this.IP_PORT + 'inventory/country/';
+
+    this.GET_COUNTRY = this.IP_PORT + 'inventory/country-pagination/';
+    this.ADD_HOSTGROUP = this.IP_PORT + 'inventory/host-group/';
+    this.HOST_DETAIL = this.IP_PORT + 'inventory/host/';
+    this.BULK_HOST = this.IP_PORT + 'inventory/bulk-host/';
+    this.HOST_DETAIL_DELETE = this.IP_PORT + 'inventory/delete-host/';
+    this.HOST_STATUS = this.IP_PORT + 'inventory/update-host-state/';
+    this.CREATE_HOST = this.IP_PORT + 'inventory/create-host/';
+    this.GET_STATE_PAGINATION = this.IP_PORT + 'inventory/state-pagination/';
+    this.GET_CITY_PAGINATION = this.IP_PORT + 'inventory/city-pagination/';
+    this.GIS_MAP = this.IP_PORT + 'gis/map/';
+    this.GET_HOST_GROUP = this.IP_PORT + 'inventory/host-group-pagination/';
+    this.COUNTRY_BASED_STATE = this.IP_PORT + 'inventory/country-based-state/';
+    this.STATE_BASED_CITY = this.IP_PORT + 'inventory/state-based-city/';
+    this.MONITORING_INSTANCE = this.IP_PORT + 'inventory/instance/';
+    this.MONITORING_INSTANCE_LOGIN = this.IP_PORT + 'inventory/instance-login/';
+    this.GIS_HOSTSTATIC = this.IP_PORT + 'gis/hoststatic/';
+    this.DELETE_COUNTRY = this.IP_PORT + 'inventory/country/';
+    this.HOST_DOWNTIMES = this.IP_PORT + 'inventory/host-downtimes/';
+    this.SMTP_TESTCONNECTION = this.IP_PORT + 'inventory/smtp-test-connection/';
+    this.SMTP_CONFIG = this.IP_PORT + 'inventory/smtp-config/';
+    this.HOST_DISCOVERY_DETAILS = this.IP_PORT + 'discovery/discovered-host/';
+    this.RUN_HOST_SERVICE_DISCOVERY =
+      this.IP_PORT + 'discovery/run-host-service-discovery/';
+    this.DISCOVERY_TASK_STATUS = this.IP_PORT + 'discovery/task-status/';
+
+    // ReportSChedule        CREATE_REPORT_SCHEDULE
+    this.CREATE_REPORT_SCHEDULE = this.IP_PORT + 'scheduler/scheduler/';
+    this.EDIT_REPORT_SCHEDULE = this.IP_PORT + 'scheduler/update-job/';
+    this.TEST_REPORT_SCHEDULE = this.IP_PORT + 'scheduler/test-email/';
+
+    // backup schedule
+    // this.SCHEDULER_HOST = this.IP_PORT + 'config-backup/backup-host-list/';
+    // this.SCHEDULER_HOSTGROUP =
+    //   this.IP_PORT + 'config-backup/backup-hostgroup-list/';
+
+    // this.DB_TYPE = this.IP_PORT + 'inventory/db-type/';
+    // this.DB_INVENTORY = this.IP_PORT + 'inventory/db-inventory/';
+    // this.DISCOVERY_RULE = this.IP_PORT + 'discovery/discovery-rule/';
+
+    // this.DISCOVERY_SERVICE_RULE = this.IP_PORT + 'discovery/service-rule/';
+
+    // this.DISCOVERED_HOST_ADD = this.IP_PORT + 'discovery/discovered-host-add/';
+
+    // this.NOTIFICATION_GROUP = this.IP_PORT + 'alert-center/notification-group/';
+    // this.NOTIFICATION_GROUP_PAGINATION =
+      // this.IP_PORT + 'alert-center/notification-pagination/';
+    // this.ALERT_CENTER_PAGINATION =
+    //   this.IP_PORT + 'alert-center/alert-center-pagination/';
+    // this.ALERT_CENTER = this.IP_PORT + 'alert-center/alert-center/';
+
+    // this.ALERT_CENTER_CONFIG = this.IP_PORT + 'alert-center/alert-config/';
+    // this.ALERTCENTER_TEST_EMAIL = this.IP_PORT + 'alert-center/test-email/';
+    // this.LAUNCH_SCHEDULER = this.IP_PORT + 'scheduler/launch-scheduler/';
+
+    // this.DISCOVERY_BULK_SERVICE =
+    //   this.IP_PORT + 'discovery/run-bulk-host-service-discovery/';
+    // this.SCHEDULER_DELETE = this.IP_PORT + 'scheduler/delete-scheduler/';
+
+    // this.CREATE_ACKNOWLEDGE_ALERT =
+    //   this.IP_PORT + 'alert-center/acknowledge-alert/';
+    // this.GET_ACKNOWLEDGE_ALERT=this.IP_PORT+'alert-center/get-acknowledge-alert/';
+    // this.REFRESH_SCHEDULER = this.IP_PORT + 'scheduler/refresh-scheduler/';
+    // this.SCHEDULER_ONOFF = this.IP_PORT + 'scheduler/onoff-scheduler/';
+    // this.SCHEDULER_REPORT = this.IP_PORT + 'scheduler/single-job/';
+    // this.ALERT_NOTIFICATION = this.IP_PORT + 'alert-center/alert-center/';
+
+    // this.CREATE_VARIABLE = this.IP_PORT + 'network-management/variable/';
+    // this.VARIABLE_PAGINATION =
+    //   this.IP_PORT + 'network-management/variable-pagination/';
+    // this.CREATE_PLAYBOOK = this.IP_PORT + 'network-management/playbook/';
+    // this.LIST_PLAYBOOK =
+    //   this.IP_PORT + 'network-management/playbook-pagination/';
+    // this.API_TOPOLOGY = this.IP_PORT + 'network-management/topology/';
+    // this.API_TOPOLOGY_NETWORK =
+    //   this.IP_PORT + 'network-management/topology-schedule/';
+    // this.API_TOPOLOGY_NETWORKUPDATE =
+    //   this.IP_PORT + 'network-management/topo-devices-data/';
+    // this.INVENTORY_DETAIL =
+    //   this.IP_PORT + 'network-management/projectinventory/';
+    // this.PROJECT_INVENTORY_DETAIL =
+    //   this.IP_PORT + 'network-management/projectinventory/';
+    // this.PROJECT_DETAIL =
+    //   this.IP_PORT + 'network-management/project-pagination/';
+    // this.PROJECT_INVENTORY_PAGINATION =
+    //   this.IP_PORT + 'network-management/projectinventory-pagination';
+
+    // this.TICKETING_TEST = this.IP_PORT + 'ticket/test-connection/';
+    // this.TICKETING_SAVE = this.IP_PORT + 'ticket/save-connection/';
+
+    // this.HISTORY_ALERT_LISTING =
+    //   this.IP_PORT + 'alert-center/sent-alert-pagination/';
+    //  network-management/project/
+
+    // this.PLAYBOOK_LIST =
+    //   this.IP_PORT + 'network-management/unassigned-playbook/';
+    // this.INVENTORY_LIST =
+    //   this.IP_PORT + 'network-management/unassigned-projectinv/';
+    // this.ADD_PROJECT = this.IP_PORT + 'network-management/project/';
+    // this.ACTIVATE_CHANGES = this.IP_PORT + 'checkmkapi/activate-changes/';
+    // this.SCHEDULER_JOB_STATUS = this.IP_PORT + 'scheduler/job-status/';
+    // this.SCHEDULER_LOGS = this.IP_PORT + 'scheduler/scheduler-log/';
+    // this.TICKET_STATUS = this.IP_PORT + 'ticket/ticket-status/';
+
+    // remote DeskTop
+    // this.REMOTE_CONNECTION = this.IP_PORT + 'remote-connection/get-token/';
+    // this.USER_LOGS = this.IP_PORT + 'account/user-activity-pagination/';
+    // this.COMPARE_BACKUP_HOST_LIST =
+      // this.IP_PORT + 'config-backup/backup-compare-host-list/';
+    // this.COMPARE_BACKUP_BKP = this.IP_PORT + 'config-backup/backup-host-bkp/';
+
+    //Time line
+    // this.GTE_HOST_TIME_LINE = this.IP_PORT + 'checkmkapi/host-timeline/';
+    // this.GTE_SERVICE_TIME_LINE = this.IP_PORT + 'checkmkapi/service-timeline/';
+    //url Management & Monitoring
+    // this.CHECK_URL = this.IP_PORT + 'url-monitoring/check-url/';
+    // this.URL_MANAGE_ADD_URL = this.IP_PORT + 'url-monitoring/add-url/';
+    // this.URL_MANAGE_GET_URL = this.IP_PORT + 'url-monitoring/url-pagination/';
+    // this.URL_MONITORING =
+    //   this.IP_PORT + 'url-monitoring/url-monitor-pagination/';
+    // this.URL_MONITORING_Data = this.IP_PORT + 'url-monitoring/url-monitor/';
+
+    // this.TRACEROUTE = this.IP_PORT + 'traceroute/find-traceroute/';
+    // this.RCA_CREATE = this.IP_PORT + 'rca/rca-create/';
+
+    // this.PROJECT_SUMMARY = this.IP_PORT + 'network-management/project-summary/';
+    // this.NETFLOW_LIST = this.IP_PORT + 'network-flow/netflow/';
+
+    // this.METRIC = this.IP_PORT + 'metric/default-metric/';
+    // this.ADD_METRIC = this.IP_PORT + 'metric/default-metric/';
+    // this.UPDATE_METRIC = this.IP_PORT + 'metric/default-metric/';
+    // this.USER_LOG_FILTER = this.IP_PORT + 'account/user_activity_filter/';
+    this.HOST_HISTORY = this.IP_PORT + 'checkmkapi/event-history/';
+    this.SERVICE_HISTORY = this.IP_PORT + 'checkmkapi/event-history/';
+    this.HOST_SERVICE_HISTORY = this.IP_PORT + 'checkmkapi/event-history/';
+    this.SCHEDULE_SUMMARY = this.IP_PORT + 'config-backup/backup-summary/';
+    this.TRAFFIC_RESOURCE = this.IP_PORT + 'network-flow/source/';
+    this.USER_METRIC = this.IP_PORT + 'metric/user-metric/';
+
+    this.TRAFFIC_TRAFFIC_ANALYZER = this.IP_PORT + 'network-flow/top-5/';
+    this.TRAFFIC_TRAFFIC_TALKERS = this.IP_PORT + 'network-flow/top-5-talkers/';
+    this.MONITORING_PERIOD =  this.IP_PORT + 'monitoring_config/mon-period-pagination/';
+    this.MONITORING_PERIOD_ADD = this.IP_PORT + 'monitoring_config/mon-period/';
+
+    this.DOCKER_MONITORING = this.IP_PORT + 'docker-monitoring/get-container/';
+    this.DOCKER_Add = this.IP_PORT + 'docker-monitoring/add-container/';
+    this.GET_MON_CONTAINER = this.IP_PORT + 'docker-monitoring/get-mon-container/'
+
+    this.MONITORING_PERIOD_LIST_WITHOUT_PAGE = this.IP_PORT + 'monitoring_config/mon-period/';
+    this.FORECASTING_ADD =
+      this.IP_PORT + 'monitoring-insight/service-metric-insight/';
+
+      this.ALL_SERVICE_LIST = this.IP_PORT+'checkmkapi/service-list/'
+
+      this.RESET_HOST_MANAGEMENT=this.IP_PORT+'metric/reset-metric/'
+      this.GET_FILTERED_DATA = this.IP_PORT+'checkmkapi/host_service-filter/'
+      this.GET_MARKER = this.IP_PORT+'discovery/marker-listing/'
+      this.MARKER_HOST = this.IP_PORT+'discovery/mark-host/'
+      this.GET_THRESHOLD_DATA= this.IP_PORT+'monitoring_config/thrshold-pagination/'
+      this.HOST_MONITORING_PERIOD=this.IP_PORT+'monitoring_config/mon-period-host-assign/'
+      this.HOST_MONITORING_PERIOD_SERVICE_NAME= this.IP_PORT+'monitoring_config/service-list/'
+
+      this.THRESHOLDS_ADD=this.IP_PORT+'monitoring_config/threshold/';
+      this.NOTIFICATION_BELL = this.IP_PORT+'discovery/admin-notification/';
+
+      this.CHECKMK_SEARCH_QUERY = this.IP_PORT+'checkmkapi/get-host-status?search_query='
+      this.CREATE_HOST_DASHBOARD = this.IP_PORT+'api/createhost/'
+      this.CREATE_HOST_SERVICE_STATUS = this.IP_PORT+'checkmkapi/get-host-service-status?service='
+      this.CREATE_HOST_ALL_SERVICE = this.IP_PORT+'checkmkapi/get-host-all-service-status?payload='
+
+      this.NETFLOW_VERSION = this.IP_PORT+'network-flow/version-list/'
+      this.BACKUP_BARCHART = this.IP_PORT+'config-backup/backup-status/'
+
+  }
+
+  
+}

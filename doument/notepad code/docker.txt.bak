@@ -1,0 +1,24 @@
+FROM node:16-alpine
+WORDIR /app
+COPY . .
+RUN npm install
+CMD [ "npm" ,"run", "dev"]
+
+
+
+
+
+docker image build -t my-node-img .   // my-node-img (name of image)
+docker images  // check all image
+docker images ls  // check all image
+docker container run my-node-img //create container
+
+docker container ls // list running container
+docker container -a // list of all container
+docker container start <container id> //exit container runing
+
+docker exec -it <container id> sh  // excess shell and run linuex server
+								??  exit 
+								
+docker container stop <container id> // stop container
+docker container run -d --name c1 my-node-img // container name create and 
